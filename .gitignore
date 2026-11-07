@@ -1,0 +1,192 @@
+# ==========================================
+# 🧠 LUMINA AI - FULLSTACK PROJECT GITIGNORE
+# FastAPI (Python) + Next.js (React) + Venv
+# ==========================================
+
+############################
+# 📦 GENERAL
+############################
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.old
+*.orig
+*.cache
+*.pid
+.env
+.env.*
+!.env.example
+
+############################
+# 🧰 PYTHON / FASTAPI BACKEND
+############################
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+
+# PyInstaller
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+test-results/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Type checker
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Pyright
+pyrightconfig.json
+
+# FAISS / vector data / embeddings
+backend/data/embeddings.index
+backend/data/metadata.json
+backend/data/vector_store/
+backend/data/logs/
+backend/data/cleaned_texts/
+backend/data/finetuning/
+backend/data/testing_pdfs/
+
+# Backend build
+backend/__pycache__/
+backend/*.egg-info
+backend/dist/
+
+############################
+# ⚛️ NEXT.JS / FRONTEND
+############################
+# Node modules
+frontend/node_modules/
+
+# Build output
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Local environment
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Editor / cache
+frontend/.eslintcache
+frontend/.parcel-cache
+frontend/.swc/
+frontend/.turbo/
+frontend/.vscode/
+frontend/.idea/
+
+############################
+# 🐳 DOCKER
+############################
+# Docker related files
+*.pid
+*.seed
+*.bak
+*.tar
+docker-compose.override.yml
+
+############################
+# 📊 PROJECT / MISC
+############################
+# Temporary data or exports
+/tmp/
+*.csv
+*.jsonl
+*.sqlite3
+*.db
+*.pkl
+*.h5
+
+# Model outputs
+checkpoints/
+runs/
+outputs/
+models/
+artifacts/
+
+############################
+# 💻 EDITORS & SYSTEM FILES
+############################
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains
+.idea/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+############################
+# 🧩 GIT CLEANUP
+############################
+# Avoid committing sensitive data or large files
+*.key
+*.pem
+*.crt
+*.p12
+*.cer
+*.csr
+*.zip
+*.tar.gz
+*.rar
+
+# Bootstrap / local junk
+get-pip.py
+frontend/.git/
+
+# End of file
