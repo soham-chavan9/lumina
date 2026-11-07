@@ -77,7 +77,7 @@ backend/data/vector_store/
 backend/data/logs/
 backend/data/cleaned_texts/
 backend/data/finetuning/
-backend/data/testing_pdfs/
+backend/data/uploads/
 
 # Backend build
 backend/__pycache__/
