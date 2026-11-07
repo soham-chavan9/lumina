@@ -190,3 +190,7 @@ get-pip.py
 frontend/.git/
 
 # End of file
+
+# Exploratory notebooks stay local
+backend/*.ipynb
+data/
