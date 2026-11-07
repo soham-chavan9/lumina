@@ -20,7 +20,13 @@ Built with **FastAPI + LangChain + FAISS + OpenAI** and a **Next.js** UI. Design
 2. **Suggested Questions** — `GET /api/suggestions` grounded prompt chips  
 3. **Compliance Risk Scan** — `POST /api/scan` gaps + strengths brief  
 
-UI: Apple-inspired light workspace (Manrope, frosted nav, soft panels) at `http://localhost:3001` when port 3000 is busy.
+UI: policy-desk workspace (Fraunces + Sora, paper canvas, teal signal) — typically `http://localhost:3001` when port 3000 is busy.
+
+## Production notes
+
+- Set `LUMINA_ENV=production` to disable OpenAPI docs and harden error payloads.
+- Set explicit `CORS_ORIGINS` for your deployed frontend.
+- Secrets stay in `.env` (never commit). `.cursor/` is ignored.
 
 ## Quick start (Docker)
 

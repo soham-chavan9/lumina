@@ -21,6 +21,12 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Cursor / local agent tooling
+.cursor/
+.cursorignore
+AGENTS.md
+.cursorrules
+
 ############################
 # 🧰 PYTHON / FASTAPI BACKEND
 ############################

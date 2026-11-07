@@ -1,33 +1,40 @@
 import '../styles/globals.css'
 
 import type { Metadata } from 'next'
-import { Manrope } from 'next/font/google'
+import { Fraunces, Sora } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 
-const manrope = Manrope({
-  variable: '--font-manrope',
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['500', '600', '700'],
+})
+
+const sora = Sora({
+  variable: '--font-sora',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
-  title: 'Lumina — Compliance Intelligence',
+  title: 'Lumina — Policy Desk',
   description:
-    'Apple-inspired compliance assistant: upload policies, ask grounded questions, scan risks.',
+    'Upload corporate policies, interrogate them with citations, and surface compliance exposure.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en" className={`${fraunces.variable} ${sora.variable}`}>
       <body>
         <Toaster
           position="top-center"
           toastOptions={{
             style: {
-              borderRadius: '14px',
-              background: '#1d1d1f',
-              color: '#fff',
-              fontSize: '14px',
+              borderRadius: '12px',
+              background: '#14181f',
+              color: '#fffdf9',
+              fontSize: '13px',
+              fontFamily: 'var(--font-sora)',
             },
           }}
         />

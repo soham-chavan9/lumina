@@ -22,33 +22,31 @@ export default function ResponseCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="lumina-panel overflow-hidden p-5 md:p-6"
+      className="desk-panel overflow-hidden p-5 md:p-6"
     >
-      <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[var(--lumina-faint)]">
-        You
-      </p>
-      <p className="mt-1 text-[15px] leading-relaxed text-[var(--lumina-ink)]">{question}</p>
+      <p className="desk-kicker">Inquiry</p>
+      <p className="mt-2 text-[0.98rem] leading-relaxed text-[var(--ink)]">{question}</p>
 
-      <div className="mt-5 border-t border-[var(--lumina-line)] pt-5">
-        <div className="mb-1 flex items-center justify-between gap-3">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[var(--lumina-blue)]">
-            Lumina
-          </p>
-          {confidence && (
-            <span className="rounded-full bg-[rgba(0,0,0,0.04)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--lumina-muted)]">
-              {confidence}
-            </span>
-          )}
-        </div>
-        <p className="text-[15px] leading-relaxed text-[var(--lumina-ink)]">{answer}</p>
+      <hr className="desk-rule" />
+
+      <div className="flex items-center justify-between gap-3">
+        <p className="desk-kicker" style={{ color: 'var(--signal)' }}>
+          Finding
+        </p>
+        {confidence && (
+          <span className="rounded-full bg-[rgba(20,24,31,0.05)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
+            {confidence} confidence
+          </span>
+        )}
       </div>
+      <p className="mt-2 text-[0.98rem] leading-relaxed text-[var(--ink)]">{answer}</p>
 
       {citation && (
-        <div className="mt-4 rounded-[14px] bg-[rgba(0,113,227,0.06)] px-3.5 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--lumina-blue)]">
+        <div className="mt-4 rounded-[14px] border-l-[3px] border-[var(--teal)] bg-[var(--teal-soft)] px-3.5 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--teal)]">
             Citation
           </p>
-          <p className="mt-1 text-sm leading-relaxed text-[var(--lumina-ink)]">{citation}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--ink-soft)]">{citation}</p>
         </div>
       )}
 
@@ -57,7 +55,7 @@ export default function ResponseCard({
           {sources.map((src) => (
             <span
               key={src}
-              className="rounded-full bg-[rgba(0,0,0,0.04)] px-2.5 py-1 text-xs text-[var(--lumina-muted)]"
+              className="rounded-full border border-[var(--line)] bg-white px-2.5 py-1 text-xs text-[var(--muted)]"
             >
               {src}
             </span>

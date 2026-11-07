@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import { ArrowUp, Loader2 } from 'lucide-react'
-import { askQuestion } from '../lib/api'
+import { askQuestion, getErrorMessage } from '../lib/api'
 
 type Props = {
   onResponseGenerated: (
@@ -14,12 +14,14 @@ type Props = {
   ) => void
   draftQuestion?: string
   onDraftConsumed?: () => void
+  disabled?: boolean
 }
 
 export default function ChatBox({
   onResponseGenerated,
   draftQuestion,
   onDraftConsumed,
+  disabled,
 }: Props) {
   const [question, setQuestion] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +35,7 @@ export default function ChatBox({
 
   const submit = async (value: string) => {
     const q = value.trim()
-    if (!q || loading) return
+    if (!q || loading || disabled) return
     setLoading(true)
     setError(null)
     try {
@@ -44,16 +46,10 @@ export default function ChatBox({
           : (data.source_documents || []).map((s) =>
               typeof s === 'string' ? s : s.source
             )
-      onResponseGenerated(
-        q,
-        data.answer,
-        sources,
-        data.citation,
-        data.confidence
-      )
+      onResponseGenerated(q, data.answer, sources, data.citation, data.confidence)
       setQuestion('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get a response.')
+      setError(getErrorMessage(err, 'Could not retrieve an answer.'))
     } finally {
       setLoading(false)
     }
@@ -68,23 +64,27 @@ export default function ChatBox({
     <div>
       <form onSubmit={onSubmit} className="relative">
         <input
-          className="lumina-input pr-14"
-          placeholder="Ask about privacy, breaches, consent, or controls…"
+          className="desk-input pr-14"
+          placeholder={
+            disabled
+              ? 'File a policy before asking…'
+              : 'Ask about retention, consent, breach clocks, ownership…'
+          }
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          disabled={loading}
-          aria-label="Ask Lumina"
+          disabled={loading || disabled}
+          aria-label="Interrogate policies"
         />
         <button
           type="submit"
-          disabled={loading || !question.trim()}
-          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--lumina-blue)] text-white transition hover:bg-[#0077ed] disabled:opacity-40"
+          disabled={loading || disabled || !question.trim()}
+          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--teal)] text-white transition hover:bg-[var(--teal-deep)] disabled:opacity-40"
           aria-label="Send question"
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
         </button>
       </form>
-      {error && <p className="mt-2 text-center text-sm text-[var(--lumina-red)]">{error}</p>}
+      {error && <p className="mt-2 text-center text-sm text-[var(--bad)]">{error}</p>}
     </div>
   )
 }

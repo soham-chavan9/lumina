@@ -1,36 +1,37 @@
 'use client'
 
-import { Sparkles } from 'lucide-react'
 import type { SuggestionItem } from '../lib/api'
 
 type Props = {
   suggestions: SuggestionItem[]
   loading?: boolean
   onSelect: (question: string) => void
+  disabled?: boolean
 }
 
-export default function SuggestedQuestions({ suggestions, loading, onSelect }: Props) {
+export default function SuggestedQuestions({
+  suggestions,
+  loading,
+  onSelect,
+  disabled,
+}: Props) {
   return (
-    <section className="lumina-enter">
-      <div className="mb-3 flex items-center gap-2">
-        <Sparkles size={16} className="text-[var(--lumina-blue)]" />
-        <h3 className="text-sm font-semibold text-[var(--lumina-ink)]">Suggested questions</h3>
-      </div>
+    <section>
+      <p className="desk-kicker mb-3">Probe lines</p>
       {loading ? (
-        <p className="text-sm text-[var(--lumina-muted)]">Preparing questions…</p>
+        <p className="text-sm text-[var(--muted)]">Drafting probes from the corpus…</p>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           {suggestions.map((item) => (
             <button
               key={item.question}
               type="button"
-              className="lumina-chip"
+              className="desk-chip"
+              disabled={disabled}
               onClick={() => onSelect(item.question)}
             >
-              <span className="mr-2 text-[11px] uppercase tracking-wide text-[var(--lumina-faint)]">
-                {item.category}
-              </span>
-              {item.question}
+              <span>{item.category}</span>
+              <strong>{item.question}</strong>
             </button>
           ))}
         </div>
