@@ -1,0 +1,59 @@
+providers:
+  - id: https
+    label: lumina-api
+    config:
+      url: "http://localhost:8000/api/ask/"
+      method: "POST"
+      headers:
+        "Content-Type": "application/json"
+      body: |
+        {
+          "question": "{{prompt}}"
+        }
+      transformResponse: "json.answer"
+
+
+tests:
+  - name: "Withdraw consent – structured compliance output"
+    prompt: "Where is the mechanism for users to withdraw consent located?"
+    assert:
+      - type: contains
+        value: "Answer:"
+      - type: contains
+        value: "Citation:"
+      - type: contains
+        value: "Confidence:"
+      - type: icontains
+        value: "consent"
+
+  - name: "Breach notification – compliance regulations"
+    prompt: "Explain data breach notification requirements for a financial services company handling EU customer data."
+    assert:
+      - type: contains
+        value: "Answer:"
+      - type: contains
+        value: "Citation:"
+      - type: contains
+        value: "Confidence:"
+      - type: icontains
+        value: "breach"
+
+  - name: "Out-of-scope – celebrity or gossip question"
+    prompt: "Tell me about Taylor Swift's dating history."
+    assert:
+      - type: contains
+        value: "Answer:"
+      - type: contains
+        value: "Citation:"
+      - type: contains
+        value: "Confidence:"
+
+  - name: "Ambiguous – ask clarifying questions or give general compliance rules"
+    prompt: "What are the rules for customer data?"
+    assert:
+      - type: contains
+        value: "Answer:"
+      - type: contains
+        value: "Citation:"
+      - type: contains
+        value: "Confidence:"
