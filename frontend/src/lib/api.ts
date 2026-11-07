@@ -99,3 +99,66 @@ export async function runRiskScan() {
   const { data } = await api.post<RiskScanResponse>('/scan')
   return data
 }
+
+export type BreachClockResponse = {
+  summary: string
+  notification_deadline: string
+  days_remaining: number | null
+  likely_reportable: boolean
+  four_factor: { factor: string; assessment: string; risk: string }[]
+  immediate_actions: string[]
+  policy_citations: string[]
+  sources: string[]
+}
+
+export type AccessRequestGuideResponse = {
+  summary: string
+  statutory_deadline: string
+  days_remaining: number | null
+  checklist: string[]
+  denial_or_delay_rules: string[]
+  policy_citations: string[]
+  sources: string[]
+}
+
+export type BaaScreenResponse = {
+  summary: string
+  ba_likely_required: boolean
+  risk_level: string
+  required_clauses: string[]
+  diligence_questions: string[]
+  blockers: string[]
+  policy_citations: string[]
+  sources: string[]
+}
+
+export async function runBreachClock(payload: {
+  description: string
+  discovered_at: string
+  phi_involved: boolean
+  individuals_affected?: number | null
+  unauthorized_recipient?: string
+}) {
+  const { data } = await api.post<BreachClockResponse>('/breach-clock', payload)
+  return data
+}
+
+export async function runAccessGuide(payload: {
+  request_type: 'access' | 'amendment' | 'restriction' | 'accounting'
+  received_at: string
+  channel: string
+  notes?: string
+}) {
+  const { data } = await api.post<AccessRequestGuideResponse>('/access-request', payload)
+  return data
+}
+
+export async function runBaaScreen(payload: {
+  vendor_name: string
+  services: string
+  creates_receives_maintains_or_transmits_phi: boolean
+  notes?: string
+}) {
+  const { data } = await api.post<BaaScreenResponse>('/baa-screen', payload)
+  return data
+}

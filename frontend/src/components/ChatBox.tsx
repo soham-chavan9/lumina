@@ -67,8 +67,8 @@ export default function ChatBox({
           className="desk-input pr-14"
           placeholder={
             disabled
-              ? 'File a policy before asking…'
-              : 'Ask about retention, consent, breach clocks, ownership…'
+              ? 'File a HIPAA policy before asking…'
+              : 'Ask about breach notice, access rights, BAAs, minimum necessary…'
           }
           value={question}
           onChange={(e) => setQuestion(e.target.value)}

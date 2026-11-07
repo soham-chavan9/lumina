@@ -22,19 +22,32 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 DEFAULT_SUGGESTIONS = [
-    SuggestionItem(question="What personal data does this policy cover?", category="privacy"),
-    SuggestionItem(question="What are the data breach notification requirements?", category="incident"),
-    SuggestionItem(question="How can a user withdraw consent?", category="rights"),
-    SuggestionItem(question="Who is responsible for compliance oversight?", category="governance"),
+    SuggestionItem(
+        question="What is our breach notification timeline after discovery of unsecured PHI?",
+        category="breach",
+    ),
+    SuggestionItem(
+        question="How do we fulfill a patient’s right of access to their designated record set?",
+        category="access",
+    ),
+    SuggestionItem(
+        question="When is a Business Associate Agreement required before sharing PHI with a vendor?",
+        category="baa",
+    ),
+    SuggestionItem(
+        question="What does minimum necessary require for workforce uses of PHI?",
+        category="privacy",
+    ),
 ]
 
 SUGGEST_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You write short compliance interview questions grounded ONLY in the context.\n"
+            "You write short HIPAA privacy-officer interview questions grounded ONLY in the context.\n"
+            "Prefer breach, access rights, BAA/vendor, minimum necessary, and sanctions themes.\n"
             "Return JSON array of exactly 4 objects: "
-            '{{"question":"...","category":"privacy|security|rights|governance|incident"}}.\n'
+            '{{"question":"...","category":"breach|access|baa|privacy|security|governance"}}.\n'
             "No markdown fences.",
         ),
         ("human", "Document names: {sources}\n\nContext:\n{context}"),
@@ -45,8 +58,10 @@ SCAN_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are Lumina, a compliance risk analyst.\n"
+            "You are Lumina, an OCR-minded HIPAA privacy analyst for a covered entity.\n"
             "Use ONLY the provided policy context.\n"
+            "Focus on breach readiness, individual rights, BAAs/vendors, minimum necessary, "
+            "and workforce sanctions gaps.\n"
             "Return JSON with keys: summary (string), "
             "findings (array of {{title, severity: High|Medium|Low, detail, recommendation}}), "
             "strengths (array of strings).\n"

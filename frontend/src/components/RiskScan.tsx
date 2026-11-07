@@ -22,11 +22,11 @@ export default function RiskScan({ result, loading, error, onScan, disabled }: P
     <section className="desk-panel p-5 md:p-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="desk-kicker">Exposure review</p>
-          <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">Policy pressure map</h2>
+          <p className="desk-kicker">OCR readiness</p>
+          <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">HIPAA exposure brief</h2>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-            Produce a brief of control gaps, residual strengths, and the next diligence moves —
-            drawn only from filed documents.
+            Scan filed policies for gaps OCR cares about — breach readiness, access rights,
+            BAAs/vendors, minimum necessary, and sanctions — with next actions attached.
           </p>
         </div>
         <button
@@ -36,7 +36,7 @@ export default function RiskScan({ result, loading, error, onScan, disabled }: P
           disabled={disabled || loading}
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <ScanSearch size={16} />}
-          {loading ? 'Reviewing…' : 'Run exposure review'}
+          {loading ? 'Reviewing…' : 'Run HIPAA exposure brief'}
         </button>
       </div>
 
@@ -48,7 +48,7 @@ export default function RiskScan({ result, loading, error, onScan, disabled }: P
 
       {!result && !loading && !error && (
         <div className="rounded-[14px] border border-dashed border-[var(--line)] px-4 py-8 text-center text-sm text-[var(--muted)]">
-          File at least one policy, then run an exposure review for a diligence brief.
+          File HIPAA policies, then run an OCR-minded exposure brief.
         </div>
       )}
 

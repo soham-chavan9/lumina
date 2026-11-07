@@ -42,8 +42,8 @@ export default function FileUpload({ onUploadComplete }: Props) {
       <p className="desk-kicker">Corpus</p>
       <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">File policies</h2>
       <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-        Add PDF handbooks, privacy notices, and control catalogs. Lumina indexes only what you
-        place on this desk.
+        File Notice of Privacy Practices, breach/IRP procedures, BAA playbooks, and workforce
+        sanctions policies. Start with <code className="text-[var(--teal)]">HIPAA_Sample_Compliance.pdf</code>.
       </p>
 
       <label

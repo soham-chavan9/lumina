@@ -8,6 +8,9 @@ import ResponseCard from '../components/ResponseCard'
 import DocumentLibrary from '../components/DocumentLibrary'
 import SuggestedQuestions from '../components/SuggestedQuestions'
 import RiskScan from '../components/RiskScan'
+import BreachClock from '../components/BreachClock'
+import AccessRequestGuide from '../components/AccessRequestGuide'
+import BaaScreen from '../components/BaaScreen'
 import {
   clearDocuments,
   fetchDocuments,
@@ -66,20 +69,20 @@ export default function HomePage() {
     } catch {
       setSuggestions([
         {
-          question: 'Which personal data categories does this policy admit processing?',
+          question: 'What is our breach notification timeline after discovery of unsecured PHI?',
+          category: 'breach',
+        },
+        {
+          question: 'How do we fulfill a patient’s right of access to their designated record set?',
+          category: 'access',
+        },
+        {
+          question: 'When is a Business Associate Agreement required before sharing PHI with a vendor?',
+          category: 'baa',
+        },
+        {
+          question: 'What does minimum necessary require for workforce uses of PHI?',
           category: 'privacy',
-        },
-        {
-          question: 'What is the breach notification timeline for affected persons?',
-          category: 'incident',
-        },
-        {
-          question: 'How does a data subject withdraw consent in practice?',
-          category: 'rights',
-        },
-        {
-          question: 'Who owns escalation when a control fails?',
-          category: 'governance',
         },
       ])
     } finally {
@@ -166,7 +169,7 @@ export default function HomePage() {
                 Lumina
               </p>
               <p className="mt-1 text-[11px] tracking-[0.04em] text-[var(--faint)]">
-                Policy interrogation desk
+                HIPAA privacy desk for health systems
               </p>
             </div>
           </div>
@@ -198,14 +201,30 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-6xl px-5 pb-24 pt-10 md:px-8">
         <section className="desk-rise mb-10 max-w-3xl">
-          <p className="desk-kicker">Compliance workspace</p>
+          <p className="desk-kicker">Built for Privacy Officers</p>
           <h1 className="mt-3 text-[2.75rem] leading-[1.05] text-[var(--ink)] md:text-[3.4rem]">
             Lumina
           </h1>
           <p className="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-[var(--ink-soft)]">
-            A quiet desk for serious policy work — file the corpus, press it with precise
-            questions, and leave with cited findings plus an exposure brief.
+            Health systems drown in policies while breach clocks, patient access deadlines, and
+            BAAs still live in email. Lumina files your HIPAA corpus, answers with citations, and
+            runs the workflows Privacy Officers actually use every week.
           </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              ['Breach chaos', '60-day notice clocks slip after discovery'],
+              ['Access backlog', '§164.524 requests stall without owners'],
+              ['Vendor rush', 'PHI shared before a BAA is cleared'],
+            ].map(([title, body]) => (
+              <div
+                key={title}
+                className="rounded-[14px] border border-[var(--line)] bg-white/70 px-3.5 py-3"
+              >
+                <p className="text-sm font-semibold text-[var(--ink)]">{title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{body}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         {apiStatus === 'offline' && (
@@ -228,11 +247,11 @@ export default function HomePage() {
 
           <div className="space-y-6">
             <section className="desk-panel p-5 md:p-6">
-              <p className="desk-kicker">Interrogation</p>
-              <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">Ask the corpus</h2>
+              <p className="desk-kicker">Policy interrogation</p>
+              <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">Ask the HIPAA corpus</h2>
               <p className="mt-1 mb-5 text-sm leading-relaxed text-[var(--muted)]">
-                Answers refuse to invent. Every finding is bound to retrieved passages, a
-                citation, and a confidence call.
+                Replace “I think the policy says…” with cited findings from your Notice of Privacy
+                Practices, IRP, and workforce procedures.
               </p>
               <ChatBox
                 onResponseGenerated={handleNewResponse}
@@ -267,7 +286,19 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-10 mb-4">
+          <p className="desk-kicker">Privacy officer workflows</p>
+          <h2 className="mt-1 text-[1.7rem] text-[var(--ink)]">Daily HIPAA operations</h2>
+          <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
+            The same three desks that dominate Privacy Officer software: breach clocks, individual
+            rights, and Business Associate diligence — grounded in your filed policies.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-1">
+          <BreachClock disabled={apiStatus === 'offline'} />
+          <AccessRequestGuide disabled={apiStatus === 'offline'} />
+          <BaaScreen disabled={apiStatus === 'offline'} />
           <RiskScan
             result={scanResult}
             loading={scanLoading}

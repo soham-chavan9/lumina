@@ -18,6 +18,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from backend.middleware import SecurityHeadersMiddleware
 from backend.routes.ask_route import router as ask_router
+from backend.routes.healthcare_route import router as healthcare_router
 from backend.routes.insights_route import router as insights_router
 from backend.routes.library_route import router as library_router
 from backend.routes.upload_route import router as upload_router
@@ -49,8 +50,11 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="Lumina",
-    description="Grounded compliance Q&A over your policy corpus.",
-    version="2.1.0",
+    description=(
+        "HIPAA privacy desk for health systems — grounded policy Q&A, breach clocks, "
+        "patient access guides, and BAA vendor screens."
+    ),
+    version="2.2.0",
     lifespan=lifespan,
     docs_url=None if IS_PROD else "/docs",
     redoc_url=None if IS_PROD else "/redoc",
@@ -80,6 +84,7 @@ app.include_router(upload_router, prefix="/api", tags=["Upload"])
 app.include_router(ask_router, prefix="/api", tags=["Ask"])
 app.include_router(library_router, prefix="/api", tags=["Library"])
 app.include_router(insights_router, prefix="/api", tags=["Insights"])
+app.include_router(healthcare_router, prefix="/api", tags=["Healthcare"])
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -129,7 +134,8 @@ def readiness():
 def root():
     payload = {
         "service": "lumina",
-        "version": "2.1.0",
+        "industry": "healthcare-hipaa",
+        "version": "2.2.0",
         "health": "/health",
         "ready": "/ready",
     }
@@ -140,6 +146,9 @@ def root():
             "documents": "/api/documents",
             "suggestions": "/api/suggestions",
             "scan": "/api/scan",
+            "breach_clock": "/api/breach-clock",
+            "access_request": "/api/access-request",
+            "baa_screen": "/api/baa-screen",
             "docs": "/docs",
         }
     return payload

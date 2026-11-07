@@ -17,9 +17,9 @@ const sora = Sora({
 })
 
 export const metadata: Metadata = {
-  title: 'Lumina — Policy Desk',
+  title: 'Lumina — HIPAA Privacy Desk',
   description:
-    'Upload corporate policies, interrogate them with citations, and surface compliance exposure.',
+    'Health-system privacy desk: grounded HIPAA policy Q&A, breach clocks, patient access guides, and BAA vendor screens.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
