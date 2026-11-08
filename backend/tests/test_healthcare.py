@@ -56,3 +56,44 @@ def test_access_request_validation(client):
     )
     assert res.status_code == 422
 
+
+
+def test_breach_rejects_future_discovery(client):
+    res = client.post(
+        "/api/breach-clock",
+        json={
+            "description": "Lost unencrypted laptop containing ePHI for 120 patients",
+            "discovered_at": "2099-01-01",
+            "phi_involved": True,
+        },
+    )
+    assert res.status_code == 422
+    assert "future" in res.json()["detail"].lower()
+
+
+def test_breach_rejects_huge_recipient(client):
+    res = client.post(
+        "/api/breach-clock",
+        json={
+            "description": "Lost unencrypted laptop containing ePHI for 120 patients",
+            "discovered_at": "2026-11-01",
+            "phi_involved": True,
+            "unauthorized_recipient": "X" * 600,
+        },
+    )
+    assert res.status_code == 422
+
+
+def test_baa_copy_when_phi_false(client):
+    res = client.post(
+        "/api/baa-screen",
+        json={
+            "vendor_name": "Acme",
+            "services": "billing support desk",
+            "creates_receives_maintains_or_transmits_phi": False,
+        },
+    )
+    assert res.status_code == 200
+    summary = res.json()["summary"]
+    assert "appears to may not" not in summary
+    assert "may not require" in summary

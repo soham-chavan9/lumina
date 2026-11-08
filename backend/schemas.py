@@ -86,7 +86,7 @@ class BreachClockRequest(BaseModel):
     )
     phi_involved: bool = True
     individuals_affected: int | None = Field(default=None, ge=0)
-    unauthorized_recipient: str = ""
+    unauthorized_recipient: str = Field(default="", max_length=500)
 
 
 class BreachFactor(BaseModel):

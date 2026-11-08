@@ -34,20 +34,29 @@ def _extract_json(text: str):
     return json.loads(text)
 
 
-def _parse_day(value: str) -> date:
+def _parse_day(value: str, *, allow_future: bool = False) -> date:
     raw = value.strip()
+    parsed: date | None = None
     for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y"):
         try:
-            return datetime.strptime(raw[:10] if "T" in raw else raw, fmt).date()
+            parsed = datetime.strptime(raw[:10] if "T" in raw else raw, fmt).date()
+            break
         except ValueError:
             continue
-    try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
-    except ValueError as exc:
+    if parsed is None:
+        try:
+            parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Use an ISO date like 2026-11-07 for discovered/received dates.",
+            ) from exc
+    if not allow_future and parsed > date.today():
         raise HTTPException(
             status_code=422,
-            detail="Use an ISO date like 2026-11-07 for discovered/received dates.",
-        ) from exc
+            detail="Discovery/received date cannot be in the future.",
+        )
+    return parsed
 
 
 def _deadline_meta(start: date, days: int) -> tuple[str, int | None]:
@@ -182,7 +191,11 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
                 },
                 {
                     "factor": "Unauthorized person",
-                    "assessment": payload.unauthorized_recipient
+                    "assessment": (
+                        (payload.unauthorized_recipient[:280] + "…")
+                        if len(payload.unauthorized_recipient) > 280
+                        else payload.unauthorized_recipient
+                    )
                     or "Identify who received or could access the PHI.",
                     "risk": "Medium",
                 },
@@ -311,7 +324,8 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
         needs = payload.creates_receives_maintains_or_transmits_phi
         data = {
             "summary": (
-                f"{payload.vendor_name} appears to {'require' if needs else 'may not require'} a BAA "
+                f"{payload.vendor_name} "
+                f"{'appears to require' if needs else 'may not require'} a BAA "
                 "based on whether it creates/receives/maintains/transmits PHI for your covered entity. "
                 "Do not share PHI until Privacy/Legal clears the contract package."
             ),
