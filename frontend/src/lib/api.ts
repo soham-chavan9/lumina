@@ -156,6 +156,7 @@ export async function runBreachClock(payload: {
   phi_involved: boolean
   individuals_affected?: number | null
   unauthorized_recipient?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<BreachClockResponse>('/breach-clock', payload)
   return data
@@ -166,6 +167,7 @@ export async function runAccessGuide(payload: {
   received_at: string
   channel: string
   notes?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<AccessRequestGuideResponse>('/access-request', payload)
   return data
@@ -176,6 +178,7 @@ export async function runBaaScreen(payload: {
   services: string
   creates_receives_maintains_or_transmits_phi: boolean
   notes?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<BaaScreenResponse>('/baa-screen', payload)
   return data

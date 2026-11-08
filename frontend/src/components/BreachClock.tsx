@@ -18,6 +18,7 @@ export default function BreachClock({ disabled }: Props) {
   const [recipient, setRecipient] = useState('')
   const [individuals, setIndividuals] = useState('')
   const [phiInvolved, setPhiInvolved] = useState(true)
+  const [ackPhi, setAckPhi] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<BreachClockResponse | null>(null)
@@ -34,6 +35,7 @@ export default function BreachClock({ disabled }: Props) {
         phi_involved: phiInvolved,
         unauthorized_recipient: recipient || undefined,
         individuals_affected: individuals ? Number(individuals) : null,
+        acknowledge_phi_export: ackPhi,
       })
       setResult(data)
     } catch (err) {
@@ -60,7 +62,7 @@ export default function BreachClock({ disabled }: Props) {
             minLength={10}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={disabled || loading}
+            disabled={disabled || loading || !ackPhi}
             className="desk-field"
             rows={3}
             placeholder="Wrong-patient email with discharge summary sent externally…"
@@ -108,6 +110,20 @@ export default function BreachClock({ disabled }: Props) {
             className="h-4 w-4 accent-[var(--accent)]"
           />
           Unsecured PHI appears involved
+        </label>
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">
+          <input
+            type="checkbox"
+            checked={ackPhi}
+            onChange={(e) => setAckPhi(e.target.checked)}
+            disabled={disabled || loading}
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            required
+          />
+          <span>
+            I understand this narrative may be sent to the configured model provider and is not a
+            substitute for Privacy Officer / Legal judgment.
+          </span>
         </label>
         <div className="md:col-span-2">
           <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading}>

@@ -11,6 +11,7 @@ export default function BaaScreen({ disabled }: Props) {
   const [services, setServices] = useState('')
   const [phi, setPhi] = useState(true)
   const [notes, setNotes] = useState('')
+  const [ackPhi, setAckPhi] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<BaaScreenResponse | null>(null)
@@ -26,6 +27,7 @@ export default function BaaScreen({ disabled }: Props) {
         services,
         creates_receives_maintains_or_transmits_phi: phi,
         notes,
+        acknowledge_phi_export: ackPhi,
       })
       setResult(data)
     } catch (err) {
@@ -89,8 +91,22 @@ export default function BaaScreen({ disabled }: Props) {
             placeholder="Subprocessors, offshore support, SOC 2…"
           />
         </label>
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">
+          <input
+            type="checkbox"
+            checked={ackPhi}
+            onChange={(e) => setAckPhi(e.target.checked)}
+            disabled={disabled || loading}
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            required
+          />
+          <span>
+            I understand vendor details may be sent to the configured model provider and PHI must
+            not flow until Privacy/Legal clears the BAA.
+          </span>
+        </label>
         <div className="md:col-span-2">
-          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading}>
+          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading || !ackPhi}>
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Handshake size={16} />}
             {loading ? 'Screening…' : 'Run BAA screen'}
           </button>

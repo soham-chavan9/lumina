@@ -89,6 +89,17 @@ def _corpus_context(query: str, max_chars: int = 5500) -> tuple[str, list[str]]:
     return "\n\n".join(parts), sources
 
 
+
+def _require_phi_ack(acknowledged: bool) -> None:
+    if not acknowledged:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "acknowledge_phi_export must be true. Lumina may send workflow "
+                "details to the configured model provider — confirm before continuing."
+            ),
+        )
+
 BREACH_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
@@ -157,6 +168,7 @@ BAA_PROMPT = ChatPromptTemplate.from_messages(
 
 @router.post("/breach-clock", response_model=BreachClockResponse)
 def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     discovered = _parse_day(payload.discovered_at)
     deadline, remaining = _deadline_meta(discovered, 60)
     context, sources = _corpus_context(
@@ -255,6 +267,7 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
 
 @router.post("/access-request", response_model=AccessRequestGuideResponse)
 def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGuideResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     received = _parse_day(payload.received_at)
     deadline, remaining = _deadline_meta(received, 30)
     context, sources = _corpus_context(
@@ -315,6 +328,7 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
 
 @router.post("/baa-screen", response_model=BaaScreenResponse)
 def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     context, sources = _corpus_context(
         f"business associate agreement vendor PHI {payload.vendor_name} {payload.services}"
     )

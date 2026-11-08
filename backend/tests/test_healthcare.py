@@ -8,6 +8,7 @@ def test_breach_clock(client):
             "discovered_at": "2026-11-01",
             "phi_involved": True,
             "individuals_affected": 120,
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 200, res.text
@@ -26,6 +27,7 @@ def test_access_request(client):
             "request_type": "access",
             "received_at": "2026-11-01",
             "channel": "patient portal",
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 200, res.text
@@ -41,6 +43,7 @@ def test_baa_screen(client):
             "vendor_name": "CloudFax Co",
             "services": "fax transmission of clinical notes",
             "creates_receives_maintains_or_transmits_phi": True,
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 200, res.text
@@ -66,6 +69,7 @@ def test_breach_rejects_future_discovery(client):
             "description": "Lost unencrypted laptop containing ePHI for 120 patients",
             "discovered_at": "2099-01-01",
             "phi_involved": True,
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 422
@@ -80,6 +84,7 @@ def test_breach_rejects_huge_recipient(client):
             "discovered_at": "2026-11-01",
             "phi_involved": True,
             "unauthorized_recipient": "X" * 600,
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 422
@@ -92,9 +97,23 @@ def test_baa_copy_when_phi_false(client):
             "vendor_name": "Acme",
             "services": "billing support desk",
             "creates_receives_maintains_or_transmits_phi": False,
+            "acknowledge_phi_export": True,
         },
     )
     assert res.status_code == 200
     summary = res.json()["summary"]
     assert "appears to may not" not in summary
     assert "may not require" in summary
+
+
+def test_breach_requires_phi_ack(client):
+    res = client.post(
+        "/api/breach-clock",
+        json={
+            "description": "Lost unencrypted laptop containing ePHI for 120 patients",
+            "discovered_at": "2026-11-01",
+            "phi_involved": True,
+            "acknowledge_phi_export": False,
+        },
+    )
+    assert res.status_code == 400

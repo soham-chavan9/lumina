@@ -87,6 +87,10 @@ class BreachClockRequest(BaseModel):
     phi_involved: bool = True
     individuals_affected: int | None = Field(default=None, ge=0)
     unauthorized_recipient: str = Field(default="", max_length=500)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms incident narrative may be processed by the model provider.",
+    )
 
 
 class BreachFactor(BaseModel):
@@ -112,6 +116,10 @@ class AccessRequestGuideRequest(BaseModel):
     received_at: str = Field(..., description="ISO date the request was received.")
     channel: str = Field(default="patient portal", max_length=120)
     notes: str = Field(default="", max_length=2000)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms request details may be processed by the model provider.",
+    )
 
 
 class AccessRequestGuideResponse(BaseModel):
@@ -130,6 +138,10 @@ class BaaScreenRequest(BaseModel):
     services: str = Field(..., min_length=5, max_length=2000)
     creates_receives_maintains_or_transmits_phi: bool = True
     notes: str = Field(default="", max_length=2000)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms vendor details may be processed by the model provider.",
+    )
 
 
 class BaaScreenResponse(BaseModel):
