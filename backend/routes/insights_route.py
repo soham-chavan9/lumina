@@ -86,7 +86,12 @@ def get_suggestions() -> SuggestionsResponse:
 
     docs = store.list_documents()
     sources = ", ".join(d["source"] for d in docs) or "uploaded policies"
-    context = store.sample_context(3500)
+    hits = store.query(
+        "HIPAA breach access BAA privacy minimum necessary sanctions",
+        k=6,
+        max_distance=1.4,
+    )
+    context = "\n\n".join(h["text"][:700] for h in hits)[:3200]
     if not context:
         return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
 
@@ -122,7 +127,12 @@ def run_risk_scan() -> RiskScanResponse:
 
     docs = store.list_documents()
     sources = [d["source"] for d in docs]
-    context = store.sample_context(6000)
+    hits = store.query(
+        "HIPAA privacy security breach BAA access rights minimum necessary sanctions OCR",
+        k=10,
+        max_distance=1.45,
+    )
+    context = "\n\n".join(h["text"][:900] for h in hits)[:5500]
     if not context:
         raise HTTPException(status_code=400, detail="No readable document context found.")
 

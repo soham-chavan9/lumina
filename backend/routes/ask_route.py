@@ -81,13 +81,14 @@ async def ask_question(data: AskRequest) -> AskResponse:
             refused=True,
         )
 
-    context = "\n\n".join(res["text"] for res in results)
-    if len(context) > 6000:
-        context = context[:6000]
+    context = "\n\n".join(res["text"][:900] for res in results)
+    if len(context) > 4500:
+        context = context[:4500]
 
     sources = sorted({res["source"] for res in results})
+    # Snippets are intentionally short to reduce corpus exfiltration surface.
     source_docs = [
-        SourceDoc(source=res["source"], snippet=res["text"][:180])
+        SourceDoc(source=res["source"], snippet=res["text"][:80] + ("…" if len(res["text"]) > 80 else ""))
         for res in results[:3]
     ]
 

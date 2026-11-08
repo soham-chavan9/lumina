@@ -67,12 +67,11 @@ async def upload_files(files: list[UploadFile] = File(...)) -> UploadResponse:
                 continue
 
             chunks = store.add_document(text, source=filename)
-            preview = text[:300] + ("..." if len(text) > 300 else "")
             results.append(
                 UploadFileResult(
                     filename=filename,
                     status="Embedded successfully.",
-                    preview=preview,
+                    preview=None,  # Do not return document body over the wire.
                     chunks=chunks,
                 )
             )

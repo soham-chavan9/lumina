@@ -66,19 +66,20 @@ def _deadline_meta(start: date, days: int) -> tuple[str, int | None]:
 
 
 def _corpus_context(query: str, max_chars: int = 5500) -> tuple[str, list[str]]:
+    """Retrieve matching passages only — never dump the whole corpus on a miss."""
     store = get_embed_store()
     if not store.is_ready():
         return "", []
     hits = store.query(query, k=8, max_distance=1.35)
     if not hits:
-        sample = store.sample_context(max_chars)
-        sources = [d["source"] for d in store.list_documents()]
-        return sample, sources
+        return "", []
     parts = []
     sources = sorted({h["source"] for h in hits})
     total = 0
     for hit in hits:
-        chunk = f"[{hit['source']}]\n{hit['text']}"
+        # Cap each passage so a single hit cannot exfiltrate a large blob.
+        text = hit["text"][:900]
+        chunk = f"[{hit['source']}]\n{text}"
         if total + len(chunk) > max_chars:
             break
         parts.append(chunk)
