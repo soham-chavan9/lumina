@@ -60,12 +60,24 @@ CI runs on push/PR. Backend tests use FastAPI `TestClient` and do **not** requir
 ## Production checklist
 
 1. Set `LUMINA_ENV=production`
-2. Set explicit `CORS_ORIGINS` to your real frontend origin(s) — boot **fails** if missing in prod
-3. Set funded `OPENAI_API_KEY` for upload/ask/scan
-4. Set `NEXT_PUBLIC_API_URL` to the public API base (`…/api`)
-5. Prefer `docker-compose.prod.yml` (non-root images, restart policy, readiness healthchecks)
-6. Keep secrets in `.env` only (gitignored)
-7. Confirm `/health` and `/ready` behind your load balancer
+2. Set `LUMINA_API_KEY` (required in prod) and mirror to `NEXT_PUBLIC_LUMINA_API_KEY` only for demos — prefer a BFF
+3. Set `NEXT_PUBLIC_LUMINA_TENANT_ID` (or send `X-Tenant-Id`) for corpus isolation
+4. Set explicit `CORS_ORIGINS` — boot **fails** if missing in prod
+5. Set funded `OPENAI_API_KEY` for upload/ask/scan — `/ready` returns 503 in prod if missing
+6. Set `NEXT_PUBLIC_API_URL` to the public API base (`…/api`)
+7. Prefer `docker-compose.prod.yml` (non-root images, restart policy, readiness healthchecks)
+8. Keep secrets in `.env` only (gitignored)
+9. Confirm `/health` and `/ready` behind your load balancer
+
+### Gap hardening already landed
+
+- API key auth on `/api/*`
+- Per-tenant FAISS paths via `X-Tenant-Id`
+- PHI export acknowledgment on healthcare workflows
+- Degraded `mode=fallback` banners when shells are used
+- XFF spoofing ignored unless `LUMINA_TRUST_PROXY=true`
+- Upload stream caps + `%PDF-` magic bytes
+- Retrieval no longer dumps the whole corpus on a miss
 
 ### Production hardening already in place
 

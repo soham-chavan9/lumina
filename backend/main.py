@@ -130,8 +130,22 @@ def health_check() -> HealthResponse:
 
 @app.get("/ready")
 def readiness():
-    """Kubernetes-style readiness: process up; corpus may still be empty."""
-    return {"ready": True, "env": settings.env, "version": settings.version}
+    """Readiness: process up; in production also require API key + OpenAI key."""
+    problems: list[str] = []
+    if settings.is_prod:
+        if not settings.api_key:
+            problems.append("missing_api_key")
+        if not settings.openai_api_key:
+            problems.append("missing_openai_api_key")
+    ready = len(problems) == 0
+    payload = {
+        "ready": ready,
+        "env": settings.env,
+        "version": settings.version,
+    }
+    if problems:
+        payload["problems"] = problems
+    return JSONResponse(status_code=200 if ready else 503, content=payload)
 
 
 @app.get("/")

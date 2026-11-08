@@ -207,6 +207,12 @@ export default function HomePage() {
                 Open workflows
               </a>
             </div>
+            <p className="mt-6 max-w-md text-[12px] leading-relaxed text-[var(--faint)]">
+              Not legal advice and not a substitute for your Privacy Officer, Security Officer, or
+              counsel. Outputs may be degraded when models are unavailable — confirm before acting.
+              Workflow narratives may be sent to your configured model provider when you acknowledge
+              export.
+            </p>
           </div>
           <div className="hero-orb hidden md:block" aria-hidden />
         </section>
