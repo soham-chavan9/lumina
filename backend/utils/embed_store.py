@@ -1,4 +1,4 @@
-"""Single shared FAISS vector store — one embedding model, one persist path, one process singleton."""
+"""Per-tenant FAISS vector store — one embedding model, isolated persist path per tenant."""
 
 from __future__ import annotations
 
@@ -22,17 +22,21 @@ DEFAULT_PERSIST = BACKEND_DIR / "data" / "vector_store"
 DEFAULT_EMBED_MODEL = os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small")
 
 _store_lock = threading.Lock()
-_store_instance: PersistentEmbedStore | None = None
+_store_instances: dict[str, PersistentEmbedStore] = {}
 
 
-def get_embed_store() -> PersistentEmbedStore:
-    """Process-wide singleton so upload and ask share the same in-memory index."""
-    global _store_instance
-    if _store_instance is None:
-        with _store_lock:
-            if _store_instance is None:
-                _store_instance = PersistentEmbedStore()
-    return _store_instance
+def get_embed_store(tenant_id: str | None = None) -> PersistentEmbedStore:
+    """Per-tenant FAISS store so corpora do not bleed across X-Tenant-Id values."""
+    from backend.tenant import get_current_tenant, sanitize_tenant_id
+
+    tid = sanitize_tenant_id(tenant_id or get_current_tenant())
+    with _store_lock:
+        store = _store_instances.get(tid)
+        if store is None:
+            path = DEFAULT_PERSIST / "tenants" / tid
+            store = PersistentEmbedStore(persist_path=str(path))
+            _store_instances[tid] = store
+        return store
 
 
 class PersistentEmbedStore:

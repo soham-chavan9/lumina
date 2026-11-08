@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 
 from fastapi import Depends, APIRouter, HTTPException
 from backend.auth import require_api_key
+from backend.tenant import bind_tenant
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -24,7 +25,7 @@ from backend.schemas import (
 )
 from backend.utils.embed_store import get_embed_store
 
-router = APIRouter(dependencies=[Depends(require_api_key)])
+router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])
 logger = logging.getLogger(__name__)
 
 

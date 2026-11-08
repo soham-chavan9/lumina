@@ -14,6 +14,9 @@ if (browserApiKey) {
   api.defaults.headers.common['X-API-Key'] = browserApiKey
 }
 
+const browserTenant = process.env.NEXT_PUBLIC_LUMINA_TENANT_ID || 'default'
+api.defaults.headers.common['X-Tenant-Id'] = browserTenant
+
 const browserApiKey = process.env.NEXT_PUBLIC_LUMINA_API_KEY
 if (browserApiKey) {
   api.defaults.headers.common['X-API-Key'] = browserApiKey
