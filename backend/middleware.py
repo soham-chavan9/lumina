@@ -14,6 +14,16 @@ from starlette.responses import JSONResponse, Response
 
 logger = logging.getLogger("lumina.middleware")
 
+LLM_PATHS = {
+    "/api/ask",
+    "/api/scan",
+    "/api/suggestions",
+    "/api/breach-clock",
+    "/api/access-request",
+    "/api/baa-screen",
+    "/api/upload",
+}
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
@@ -38,34 +48,53 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple per-IP sliding window limiter for API abuse protection."""
+    """Per-IP sliding window limiter with stricter budgets for LLM routes.
 
-    def __init__(self, app, limit_per_minute: int = 120):
+    X-Forwarded-For is ignored unless trust_proxy=True (set only behind a
+    known reverse proxy that overwrites the header).
+    """
+
+    def __init__(
+        self,
+        app,
+        limit_per_minute: int = 120,
+        llm_limit_per_minute: int = 20,
+        trust_proxy: bool = False,
+    ):
         super().__init__(app)
         self.limit = max(1, limit_per_minute)
+        self.llm_limit = max(1, llm_limit_per_minute)
+        self.trust_proxy = trust_proxy
         self.window = 60.0
         self._hits: dict[str, deque[float]] = defaultdict(deque)
         self._lock = Lock()
 
     def _client_key(self, request: Request) -> str:
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
+        if self.trust_proxy:
+            forwarded = request.headers.get("x-forwarded-for")
+            if forwarded:
+                return forwarded.split(",")[0].strip()
         if request.client:
             return request.client.host
         return "unknown"
+
+    def _limit_for(self, path: str) -> int:
+        if path in LLM_PATHS:
+            return self.llm_limit
+        return self.limit
 
     async def dispatch(self, request: Request, call_next) -> Response:
         if request.url.path in {"/health", "/ready", "/"}:
             return await call_next(request)
 
-        key = self._client_key(request)
+        key = f"{self._client_key(request)}:{request.url.path if request.url.path in LLM_PATHS else 'general'}"
+        limit = self._limit_for(request.url.path)
         now = time.monotonic()
         with self._lock:
             bucket = self._hits[key]
             while bucket and now - bucket[0] > self.window:
                 bucket.popleft()
-            if len(bucket) >= self.limit:
+            if len(bucket) >= limit:
                 logger.warning("Rate limit exceeded for %s on %s", key, request.url.path)
                 return JSONResponse(
                     status_code=429,

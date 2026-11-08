@@ -28,4 +28,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=20s --timeout=5s --start-period=25s --retries=5 \
   CMD curl -fsS http://127.0.0.1:8000/health >/dev/null || exit 1
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Do not trust arbitrary X-Forwarded-For. Set LUMINA_TRUST_PROXY=true only
+# behind a reverse proxy that overwrites the client IP header.
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

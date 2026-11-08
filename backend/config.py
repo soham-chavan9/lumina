@@ -25,6 +25,8 @@ class Settings:
     cors_origins: list[str] = field(default_factory=list)
     seed_sample_docs: bool = False
     rate_limit_per_minute: int = 120
+    llm_rate_limit_per_minute: int = 20
+    trust_proxy: bool = False
     max_upload_mb: int = 15
     max_upload_files: int = 10
     version: str = "2.3.0"
@@ -68,6 +70,8 @@ def get_settings() -> Settings:
         seed_sample_docs=os.getenv("LUMINA_SEED_SAMPLE_DOCS", "false").lower()
         in {"1", "true", "yes"},
         rate_limit_per_minute=int(os.getenv("LUMINA_RATE_LIMIT_PER_MINUTE", "120")),
+        llm_rate_limit_per_minute=int(os.getenv("LUMINA_LLM_RATE_LIMIT_PER_MINUTE", "20")),
+        trust_proxy=os.getenv("LUMINA_TRUST_PROXY", "false").lower() in {"1", "true", "yes"},
         max_upload_mb=int(os.getenv("LUMINA_MAX_UPLOAD_MB", "15")),
         max_upload_files=int(os.getenv("LUMINA_MAX_UPLOAD_FILES", "10")),
         version=os.getenv("LUMINA_VERSION", "2.3.0"),
