@@ -16,6 +16,7 @@ def test_breach_clock(client):
     assert body["likely_reportable"] is True
     assert len(body["four_factor"]) == 4
     assert body["days_remaining"] is not None
+    assert body["mode"] == "fallback"
 
 
 def test_access_request(client):

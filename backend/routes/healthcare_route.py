@@ -160,6 +160,7 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
         f"breach notification incident response PHI disclosure {payload.description}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (BREACH_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -174,8 +175,10 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("Breach clock LLM failed; using deterministic HIPAA shell")
+        mode = "fallback"
         data = {
             "summary": (
                 "Treat this as a potential breach of unsecured PHI until the four-factor "
@@ -243,6 +246,7 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
         immediate_actions=[str(x) for x in data.get("immediate_actions", []) if str(x).strip()][:8],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )
 
 
@@ -254,6 +258,7 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
         f"individual right of access amendment accounting of disclosures {payload.request_type}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (ACCESS_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -265,8 +270,10 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("Access guide LLM failed; using statutory shell")
+        mode = "fallback"
         data = {
             "summary": (
                 f"Treat this {payload.request_type} request as received on {received.isoformat()}. "
@@ -299,6 +306,7 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
         ][:6],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )
 
 
@@ -308,6 +316,7 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
         f"business associate agreement vendor PHI {payload.vendor_name} {payload.services}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (BAA_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -319,8 +328,10 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("BAA screen LLM failed; using diligence shell")
+        mode = "fallback"
         needs = payload.creates_receives_maintains_or_transmits_phi
         data = {
             "summary": (
@@ -372,4 +383,5 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
         blockers=[str(x) for x in data.get("blockers", []) if str(x).strip()][:6],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )

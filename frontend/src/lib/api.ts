@@ -100,6 +100,8 @@ export async function runRiskScan() {
   return data
 }
 
+export type WorkflowMode = 'policy_grounded' | 'fallback'
+
 export type BreachClockResponse = {
   summary: string
   notification_deadline: string
@@ -109,6 +111,7 @@ export type BreachClockResponse = {
   immediate_actions: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export type AccessRequestGuideResponse = {
@@ -119,6 +122,7 @@ export type AccessRequestGuideResponse = {
   denial_or_delay_rules: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export type BaaScreenResponse = {
@@ -130,6 +134,7 @@ export type BaaScreenResponse = {
   blockers: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export async function runBreachClock(payload: {

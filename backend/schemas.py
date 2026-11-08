@@ -104,6 +104,7 @@ class BreachClockResponse(BaseModel):
     immediate_actions: list[str] = Field(default_factory=list)
     policy_citations: list[str] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 
 
 class AccessRequestGuideRequest(BaseModel):
@@ -121,6 +122,7 @@ class AccessRequestGuideResponse(BaseModel):
     denial_or_delay_rules: list[str] = Field(default_factory=list)
     policy_citations: list[str] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 
 
 class BaaScreenRequest(BaseModel):
@@ -139,4 +141,5 @@ class BaaScreenResponse(BaseModel):
     blockers: list[str] = Field(default_factory=list)
     policy_citations: list[str] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 

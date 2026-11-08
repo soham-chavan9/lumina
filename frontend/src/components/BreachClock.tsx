@@ -125,6 +125,12 @@ export default function BreachClock({ disabled }: Props) {
 
       {result && (
         <div className="desk-rise mt-6 space-y-5 border-t border-[var(--line)] pt-5">
+          {result.mode === 'fallback' && (
+            <p className="rounded-[12px] bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[13px] text-[var(--ink-soft)]">
+              Degraded mode — statutory shell only. Not grounded in filed policies. Confirm with
+              Privacy/Legal before acting.
+            </p>
+          )}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="desk-kicker">Individual notice deadline</p>

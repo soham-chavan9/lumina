@@ -105,6 +105,12 @@ export default function BaaScreen({ disabled }: Props) {
 
       {result && (
         <div className="desk-rise mt-6 space-y-5 border-t border-[var(--line)] pt-5">
+          {result.mode === 'fallback' && (
+            <p className="rounded-[12px] bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[13px] text-[var(--ink-soft)]">
+              Degraded mode — diligence shell only. Not grounded in filed policies. Confirm with
+              Privacy/Legal before PHI flows.
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <span className="pill">
               BAA likely required: {result.ba_likely_required ? 'Yes' : 'No / confirm'}
