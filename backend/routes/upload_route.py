@@ -14,6 +14,26 @@ from backend.utils.pdf_parser import extract_text_from_pdf
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+CHUNK = 64 * 1024
+
+
+async def _read_capped(file: UploadFile, max_bytes: int) -> bytes | None:
+    """Stream upload into memory with a hard cap; return None if oversized."""
+    parts: list[bytes] = []
+    total = 0
+    while True:
+        block = await file.read(CHUNK)
+        if not block:
+            break
+        total += len(block)
+        if total > max_bytes:
+            # Drain remainder so the connection doesn't stall, then reject.
+            while await file.read(CHUNK):
+                pass
+            return None
+        parts.append(block)
+    return b"".join(parts)
+
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_files(files: list[UploadFile] = File(...)) -> UploadResponse:
@@ -42,12 +62,21 @@ async def upload_files(files: list[UploadFile] = File(...)) -> UploadResponse:
                 )
                 continue
 
-            content = await file.read()
-            if len(content) > max_bytes:
+            content = await _read_capped(file, max_bytes)
+            if content is None:
                 results.append(
                     UploadFileResult(
                         filename=filename,
                         status=f"Skipped: file exceeds {settings.max_upload_mb}MB limit.",
+                    )
+                )
+                continue
+
+            if not content.startswith(b"%PDF-"):
+                results.append(
+                    UploadFileResult(
+                        filename=filename,
+                        status="Skipped: file is not a valid PDF (missing %PDF- header).",
                     )
                 )
                 continue
@@ -66,12 +95,16 @@ async def upload_files(files: list[UploadFile] = File(...)) -> UploadResponse:
                 )
                 continue
 
+            # Bound extract size before embedding to limit DoS via huge text PDFs.
+            if len(text) > 1_500_000:
+                text = text[:1_500_000]
+
             chunks = store.add_document(text, source=filename)
             results.append(
                 UploadFileResult(
                     filename=filename,
                     status="Embedded successfully.",
-                    preview=None,  # Do not return document body over the wire.
+                    preview=None,
                     chunks=chunks,
                 )
             )
