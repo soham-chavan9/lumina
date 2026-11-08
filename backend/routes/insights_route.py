@@ -4,7 +4,8 @@ import json
 import logging
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from backend.auth import require_api_key
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -17,7 +18,7 @@ from backend.schemas import (
 )
 from backend.utils.embed_store import get_embed_store
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key)])
 logger = logging.getLogger(__name__)
 
 DEFAULT_SUGGESTIONS = [

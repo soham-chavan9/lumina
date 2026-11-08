@@ -9,6 +9,16 @@ export const api = axios.create({
   headers: { Accept: 'application/json' },
 })
 
+const browserApiKey = process.env.NEXT_PUBLIC_LUMINA_API_KEY
+if (browserApiKey) {
+  api.defaults.headers.common['X-API-Key'] = browserApiKey
+}
+
+const browserApiKey = process.env.NEXT_PUBLIC_LUMINA_API_KEY
+if (browserApiKey) {
+  api.defaults.headers.common['X-API-Key'] = browserApiKey
+}
+
 export function getErrorMessage(err: unknown, fallback = 'Something went wrong') {
   const ax = err as AxiosError<{ detail?: string | { msg?: string }[] }>
   const detail = ax.response?.data?.detail

@@ -19,6 +19,7 @@ def _split_origins(raw: str | None, fallback: str) -> list[str]:
 class Settings:
     env: str = "development"
     openai_api_key: str = ""
+    api_key: str = ""
     model: str = "gpt-4o-mini"
     embed_model: str = "text-embedding-3-small"
     max_distance: float = 1.2
@@ -42,6 +43,10 @@ class Settings:
             logger.warning(
                 "LUMINA_ENV=production but OPENAI_API_KEY is empty — RAG/upload will fail"
             )
+        if not self.api_key:
+            raise RuntimeError(
+                "Production requires LUMINA_API_KEY — unauthenticated API access is not allowed."
+            )
         if not os.getenv("CORS_ORIGINS"):
             raise RuntimeError(
                 "Production requires CORS_ORIGINS to be set explicitly "
@@ -63,6 +68,7 @@ def get_settings() -> Settings:
     settings = Settings(
         env=env,
         openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
+        api_key=os.getenv("LUMINA_API_KEY", "").strip(),
         model=os.getenv("LUMINA_MODEL", "gpt-4o-mini").strip(),
         embed_model=os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small").strip(),
         max_distance=float(os.getenv("LUMINA_MAX_DISTANCE", "1.2")),

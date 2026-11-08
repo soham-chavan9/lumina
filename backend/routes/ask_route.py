@@ -4,14 +4,15 @@ import logging
 import os
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from backend.auth import require_api_key
 
 from backend.llm_workflow import generate_lumina_answer, parse_lumina_output
 from backend.schemas import AskRequest, AskResponse, SourceDoc
 from backend.utils.embed_store import get_embed_store
 from backend.utils.performance_logger import log_performance
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key)])
 logger = logging.getLogger(__name__)
 
 INJECTION_PHRASES = (

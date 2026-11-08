@@ -1,4 +1,4 @@
-"""Schema and config unit tests — backend.schemas / backend.config. No prior unit tests."""
+"""Schema and config unit tests — backend.schemas / backend.config."""
 
 from backend.config import Settings, get_settings
 from backend.schemas import AskRequest, BreachClockRequest
@@ -31,18 +31,32 @@ def test_settings_cache_and_defaults():
     get_settings.cache_clear()
 
 
+def test_prod_requires_api_key(monkeypatch):
+    get_settings.cache_clear()
+    monkeypatch.setenv("LUMINA_ENV", "production")
+    monkeypatch.setenv("CORS_ORIGINS", "https://app.example.com")
+    s = Settings(env="production", api_key="", cors_origins=["https://app.example.com"])
+    try:
+        s.validate_for_boot()
+        assert False, "expected RuntimeError"
+    except RuntimeError as exc:
+        assert "LUMINA_API_KEY" in str(exc)
+    finally:
+        get_settings.cache_clear()
+        monkeypatch.setenv("LUMINA_ENV", "development")
+
+
 def test_prod_requires_cors(monkeypatch):
     get_settings.cache_clear()
     monkeypatch.setenv("LUMINA_ENV", "production")
     monkeypatch.delenv("CORS_ORIGINS", raising=False)
-    get_settings.cache_clear()
     s = Settings(
         env="production",
+        api_key="test-key",
         cors_origins=["http://localhost:3000"],
         openai_api_key="",
     )
     try:
-        # validate_for_boot checks os.environ CORS_ORIGINS, not the dataclass field alone
         monkeypatch.delenv("CORS_ORIGINS", raising=False)
         s.validate_for_boot()
         assert False, "expected RuntimeError"
@@ -51,4 +65,3 @@ def test_prod_requires_cors(monkeypatch):
     finally:
         get_settings.cache_clear()
         monkeypatch.setenv("LUMINA_ENV", "development")
-
