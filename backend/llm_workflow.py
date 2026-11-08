@@ -1,10 +1,10 @@
 import os
 import re
-from typing import Optional, Dict, Any
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from typing import Any
 
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
 # Single canonical prompt — no competing chain templates on the hot path
 prompt_with_context = ChatPromptTemplate.from_messages([
@@ -33,7 +33,7 @@ prompt_with_context = ChatPromptTemplate.from_messages([
 
 
 # === Initialize reusable LLM ===
-def get_lumina_model(model_name: Optional[str] = None):
+def get_lumina_model(model_name: str | None = None):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is missing for LangChain backend.")
@@ -50,8 +50,8 @@ def get_lumina_model(model_name: Optional[str] = None):
 # === Core Generation Function ===
 def generate_lumina_answer(
     question: str,
-    context: Optional[str] = "",
-    model_name: Optional[str] = None,
+    context: str | None = "",
+    model_name: str | None = None,
 ) -> str:
     """
     Generate a structured compliance answer using LangChain.
@@ -69,11 +69,11 @@ def generate_lumina_answer(
             "context": context,
         })
     except Exception as e:
-        raise RuntimeError(f"Lumina LLM error: {str(e)}") from e
+        raise RuntimeError(f"Lumina LLM error: {e!s}") from e
 
 
 # === Output Parsing ===
-def parse_lumina_output(text: str) -> Dict[str, Any]:
+def parse_lumina_output(text: str) -> dict[str, Any]:
     """
     Parse structured LLM output into JSON format.
     Input example:

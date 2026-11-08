@@ -1,6 +1,6 @@
 import json
-import random
 import os
+import random
 
 INPUT = "data/cleaned_texts/dataset.json"
 OUTPUT = "data/finetuning/finetune_data.jsonl"
@@ -29,8 +29,7 @@ def generate_dataset():
             })
 
     with open(OUTPUT, "w") as f:
-        for ex in examples:
-            f.write(json.dumps(ex) + "\n")
+        f.writelines(json.dumps(ex) + "\n" for ex in examples)
 
     print(f"✅ Created {len(examples)} fine-tuning samples at {OUTPUT}")
 

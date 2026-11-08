@@ -1,5 +1,6 @@
-from openai import OpenAI
 import os
+
+from openai import OpenAI
 
 # Initialize client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -14,7 +15,7 @@ try:
         training_file=training_file_id,
         model="gpt-3.5-turbo-1106"
     )
-    print(f"✅ Fine-tuning job created successfully!")
+    print("✅ Fine-tuning job created successfully!")
     print(f"🆔 Job ID: {job.id}")
     print(f"📋 Status: {job.status}")
 except Exception as e:

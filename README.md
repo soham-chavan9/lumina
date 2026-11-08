@@ -2,7 +2,7 @@
 
 **Industry:** Health systems & digital health (Privacy / Compliance Officers)
 
-Lumina is a grounded policy desk for the people who live inside HIPAA every day. File your privacy corpus, interrogate it with citations, and run the three workflows that dominate Privacy Officer platforms: **breach clocks**, **patient access requests**, and **BAA / vendor screens**.
+Lumina files your HIPAA corpus, answers with citations, and runs the workflows Privacy Officers use every week: **breach clocks**, **patient access guides**, and **BAA / vendor screens**.
 
 ## Why healthcare
 
@@ -18,17 +18,64 @@ Lumina is a grounded policy desk for the people who live inside HIPAA every day.
 
 FastAPI + LangChain + FAISS + OpenAI · Next.js policy desk UI · Docker Compose
 
-## Quick start
+## Quick start (local)
 
 ```bash
 cp .env.example .env   # add a funded OPENAI_API_KEY
-docker compose up --build
-# or local: backend :8000 + frontend :3001
+python -m venv venv && source venv/bin/activate
+make install
+# terminal 1
+PYTHONPATH=. uvicorn backend.main:app --reload --port 8000
+# terminal 2
+cd frontend && npm run dev -- --port 3001
 ```
 
 - UI: http://localhost:3001  
 - API docs: http://localhost:8000/docs  
 - Demo PDF: `backend/data/testing_pdfs/HIPAA_Sample_Compliance.pdf`
+
+## Docker
+
+```bash
+# Development compose
+docker compose up --build
+
+# Production compose (requires CORS_ORIGINS + NEXT_PUBLIC_API_URL in .env)
+docker compose -f docker-compose.prod.yml up --build -d
+# or: make up-prod
+```
+
+## SDLC / quality gates
+
+| Stage | Command |
+|---|---|
+| Install | `make install` |
+| Unit tests | `make test` |
+| Lint | `make lint` |
+| Frontend types | `make typecheck` |
+| CI | `.github/workflows/ci.yml` (pytest + ruff + eslint + tsc + next build) |
+
+CI runs on push/PR. Backend tests use FastAPI `TestClient` and do **not** require OpenAI credits (HIPAA workflows fall back to deterministic statutory shells).
+
+## Production checklist
+
+1. Set `LUMINA_ENV=production`
+2. Set explicit `CORS_ORIGINS` to your real frontend origin(s) — boot **fails** if missing in prod
+3. Set funded `OPENAI_API_KEY` for upload/ask/scan
+4. Set `NEXT_PUBLIC_API_URL` to the public API base (`…/api`)
+5. Prefer `docker-compose.prod.yml` (non-root images, restart policy, readiness healthchecks)
+6. Keep secrets in `.env` only (gitignored)
+7. Confirm `/health` and `/ready` behind your load balancer
+
+### Production hardening already in place
+
+- OpenAPI docs disabled in production  
+- Generic 5xx / validation error bodies in production  
+- Security headers + request IDs  
+- Per-IP rate limiting (`LUMINA_RATE_LIMIT_PER_MINUTE`)  
+- Upload size/count limits  
+- Non-root Docker users  
+- Central `backend/config.py` settings with boot validation  
 
 ## Core workflows
 
@@ -39,12 +86,6 @@ docker compose up --build
 5. **BAA screen** — `POST /api/baa-screen`  
 6. **HIPAA exposure brief** — `POST /api/scan`
 
-## Production notes
-
-- Set `LUMINA_ENV=production` to disable OpenAPI docs and harden errors  
-- Set explicit `CORS_ORIGINS` for your frontend  
-- Keep secrets in `.env` (gitignored). `.cursor/` is ignored  
-
 ## Resume blurb
 
-> Built **Lumina**, a HIPAA privacy desk for health systems: PDF policy RAG with citations, breach notification clocks, patient access guides, and BAA vendor screens — FastAPI + Next.js, Docker-deployable.
+> Built **Lumina**, a HIPAA privacy desk for health systems: PDF policy RAG with citations, breach notification clocks, patient access guides, and BAA vendor screens — FastAPI + Next.js, Docker-deployable, CI-gated.

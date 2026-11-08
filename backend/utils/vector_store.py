@@ -1,8 +1,9 @@
 import os
+
+from dotenv import load_dotenv
+from langchain.docstore.document import Document
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain.docstore.document import Document
-from dotenv import load_dotenv
 
 # Load env vars
 load_dotenv()

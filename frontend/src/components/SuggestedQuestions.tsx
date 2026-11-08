@@ -17,9 +17,9 @@ export default function SuggestedQuestions({
 }: Props) {
   return (
     <section>
-      <p className="desk-kicker mb-3">Probe lines</p>
+      <p className="desk-kicker mb-3">Suggested</p>
       {loading ? (
-        <p className="text-sm text-[var(--muted)]">Drafting probes from the corpus…</p>
+        <p className="text-sm text-[var(--muted)]">Preparing probes…</p>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
           {suggestions.map((item) => (

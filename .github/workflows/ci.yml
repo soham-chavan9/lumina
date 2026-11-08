@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, "cursor/**"]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check backend
+      - name: Test
+        env:
+          LUMINA_ENV: development
+          LUMINA_SEED_SAMPLE_DOCS: "false"
+          LUMINA_RATE_LIMIT_PER_MINUTE: "10000"
+          CORS_ORIGINS: http://localhost:3000
+          OPENAI_API_KEY: ""
+        run: PYTHONPATH=. pytest --cov=backend --cov-report=term-missing
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api

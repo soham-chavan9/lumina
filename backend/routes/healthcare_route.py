@@ -6,7 +6,6 @@ import json
 import logging
 import re
 from datetime import date, datetime, timedelta
-from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException
 from langchain_core.output_parsers import StrOutputParser
@@ -51,13 +50,13 @@ def _parse_day(value: str) -> date:
         ) from exc
 
 
-def _deadline_meta(start: date, days: int) -> Tuple[str, Optional[int]]:
+def _deadline_meta(start: date, days: int) -> tuple[str, int | None]:
     deadline = start + timedelta(days=days)
     remaining = (deadline - date.today()).days
     return deadline.isoformat(), remaining
 
 
-def _corpus_context(query: str, max_chars: int = 5500) -> Tuple[str, List[str]]:
+def _corpus_context(query: str, max_chars: int = 5500) -> tuple[str, list[str]]:
     store = get_embed_store()
     if not store.is_ready():
         return "", []

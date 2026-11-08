@@ -3,9 +3,10 @@
 # Requires FastAPI backend running on port 8000
 # ==============================================================
 
+from pathlib import Path
+
 import pytest
 import requests
-from pathlib import Path
 
 # ==============================================================
 # Configuration

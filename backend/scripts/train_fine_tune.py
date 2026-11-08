@@ -1,4 +1,3 @@
-import os
 import subprocess
 
 # Paths and model
@@ -26,4 +25,4 @@ except subprocess.CalledProcessError as e:
     print(e.output.decode())
 
 print("\n🕒 You can monitor progress with:")
-print(f"openai api fine_tuning.jobs.list_events -i <job_id>")
+print("openai api fine_tuning.jobs.list_events -i <job_id>")

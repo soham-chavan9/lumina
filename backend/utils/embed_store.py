@@ -8,11 +8,10 @@ import logging
 import os
 import threading
 from pathlib import Path
-from typing import List, Optional
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from backend.utils.pdf_parser import extract_text_from_pdf
 
@@ -23,10 +22,10 @@ DEFAULT_PERSIST = BACKEND_DIR / "data" / "vector_store"
 DEFAULT_EMBED_MODEL = os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small")
 
 _store_lock = threading.Lock()
-_store_instance: Optional["PersistentEmbedStore"] = None
+_store_instance: PersistentEmbedStore | None = None
 
 
-def get_embed_store() -> "PersistentEmbedStore":
+def get_embed_store() -> PersistentEmbedStore:
     """Process-wide singleton so upload and ask share the same in-memory index."""
     global _store_instance
     if _store_instance is None:
@@ -37,11 +36,11 @@ def get_embed_store() -> "PersistentEmbedStore":
 
 
 class PersistentEmbedStore:
-    def __init__(self, persist_path: Optional[str] = None):
+    def __init__(self, persist_path: str | None = None):
         self.persist_path = Path(persist_path or DEFAULT_PERSIST)
         self.persist_path.mkdir(parents=True, exist_ok=True)
         self.embedding_model = OpenAIEmbeddings(model=DEFAULT_EMBED_MODEL)
-        self.vectorstore: Optional[FAISS] = None
+        self.vectorstore: FAISS | None = None
         self._load()
 
     def _load(self) -> None:
@@ -98,7 +97,7 @@ class PersistentEmbedStore:
         )
         return len(docs)
 
-    def query(self, question: str, k: int = 6, max_distance: float = 1.2) -> List[dict]:
+    def query(self, question: str, k: int = 6, max_distance: float = 1.2) -> list[dict]:
         """Return chunks under a FAISS L2 distance threshold (lower = closer)."""
         if not self.vectorstore:
             return []
@@ -119,7 +118,7 @@ class PersistentEmbedStore:
             )
         return filtered
 
-    def index_pdfs_from_folder(self, folder_path: Optional[str] = None) -> int:
+    def index_pdfs_from_folder(self, folder_path: str | None = None) -> int:
         folder = Path(folder_path or (BACKEND_DIR / "data" / "testing_pdfs"))
         pdf_paths = sorted(glob.glob(str(folder / "*.pdf")))
         indexed = 0
@@ -134,7 +133,7 @@ class PersistentEmbedStore:
                 logger.error("Failed to index %s: %s", path, exc)
         return indexed
 
-    def list_documents(self) -> List[dict]:
+    def list_documents(self) -> list[dict]:
         if not self.vectorstore:
             return []
         counts: dict[str, int] = {}
@@ -153,7 +152,7 @@ class PersistentEmbedStore:
     def sample_context(self, max_chars: int = 5000) -> str:
         if not self.vectorstore:
             return ""
-        parts: List[str] = []
+        parts: list[str] = []
         total = 0
         with _store_lock:
             for doc_id in list(self.vectorstore.index_to_docstore_id.values())[:40]:

@@ -70,19 +70,19 @@ export default function HomePage() {
       setSuggestions([
         {
           question: 'What is our breach notification timeline after discovery of unsecured PHI?',
-          category: 'breach',
+          category: 'Breach',
         },
         {
           question: 'How do we fulfill a patient’s right of access to their designated record set?',
-          category: 'access',
+          category: 'Access',
         },
         {
           question: 'When is a Business Associate Agreement required before sharing PHI with a vendor?',
-          category: 'baa',
+          category: 'BAA',
         },
         {
           question: 'What does minimum necessary require for workforce uses of PHI?',
-          category: 'privacy',
+          category: 'Privacy',
         },
       ])
     } finally {
@@ -146,9 +146,9 @@ export default function HomePage() {
     try {
       const result = await runRiskScan()
       setScanResult(result)
-      toast.success('Exposure review ready')
+      toast.success('Exposure brief ready')
     } catch (err) {
-      setScanError(getErrorMessage(err, 'Exposure review failed'))
+      setScanError(getErrorMessage(err, 'Exposure brief failed'))
     } finally {
       setScanLoading(false)
     }
@@ -159,82 +159,66 @@ export default function HomePage() {
   return (
     <div className="desk-shell">
       <header className="desk-nav">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 md:px-8">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between px-5 py-3 md:px-8">
+          <a href="#top" className="flex items-center gap-2.5 no-underline">
             <span className="mark" aria-hidden>
               L
             </span>
-            <div>
-              <p className="font-[family-name:var(--font-display)] text-[1.15rem] leading-none text-[var(--ink)]">
-                Lumina
-              </p>
-              <p className="mt-1 text-[11px] tracking-[0.04em] text-[var(--faint)]">
-                HIPAA privacy desk for health systems
-              </p>
-            </div>
-          </div>
+            <span className="text-[17px] font-semibold tracking-[-0.02em] text-[var(--ink)]">
+              Lumina
+            </span>
+          </a>
 
-          <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/70 px-2.5 py-1">
+          <div className="flex items-center gap-2">
+            <span className="pill">
               <span
                 className={`status-dot ${
                   apiStatus === 'online' ? '' : apiStatus === 'checking' ? 'warn' : 'bad'
                 }`}
               />
               {apiStatus === 'online'
-                ? 'Desk online'
+                ? 'Online'
                 : apiStatus === 'checking'
-                  ? 'Connecting…'
-                  : 'API offline'}
+                  ? 'Connecting'
+                  : 'Offline'}
             </span>
-            <span className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2.5 py-1 tabular-nums sm:inline">
-              {documents.length} filed
-            </span>
-            {modelName && (
-              <span className="hidden rounded-full border border-[var(--line)] bg-white/70 px-2.5 py-1 md:inline">
-                {modelName}
-              </span>
-            )}
+            <span className="pill hidden tabular-nums sm:inline-flex">{documents.length} filed</span>
+            {modelName ? <span className="pill hidden md:inline-flex">{modelName}</span> : null}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 pb-24 pt-10 md:px-8">
-        <section className="desk-rise mb-10 max-w-3xl">
-          <p className="desk-kicker">Built for Privacy Officers</p>
-          <h1 className="mt-3 text-[2.75rem] leading-[1.05] text-[var(--ink)] md:text-[3.4rem]">
-            Lumina
-          </h1>
-          <p className="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-[var(--ink-soft)]">
-            Health systems drown in policies while breach clocks, patient access deadlines, and
-            BAAs still live in email. Lumina files your HIPAA corpus, answers with citations, and
-            runs the workflows Privacy Officers actually use every week.
-          </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {[
-              ['Breach chaos', '60-day notice clocks slip after discovery'],
-              ['Access backlog', '§164.524 requests stall without owners'],
-              ['Vendor rush', 'PHI shared before a BAA is cleared'],
-            ].map(([title, body]) => (
-              <div
-                key={title}
-                className="rounded-[14px] border border-[var(--line)] bg-white/70 px-3.5 py-3"
-              >
-                <p className="text-sm font-semibold text-[var(--ink)]">{title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{body}</p>
-              </div>
-            ))}
+      <main id="top" className="mx-auto max-w-[1080px] px-5 pb-28 pt-8 md:px-8 md:pt-12">
+        <section className="hero-stage desk-rise relative mb-14 px-7 py-10 md:px-12 md:py-14">
+          <div className="relative z-10 max-w-xl">
+            <p className="desk-kicker">HIPAA privacy desk</p>
+            <h1 className="mt-3 text-[clamp(2.6rem,6vw,4.25rem)] leading-[1.02] tracking-[-0.045em] text-[var(--ink)]">
+              Lumina
+            </h1>
+            <p className="mt-4 max-w-md text-[17px] leading-relaxed text-[var(--ink-soft)]">
+              File your policies once. Ask with citations. Run the breach, access, and BAA
+              workflows Privacy Officers use every week.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a href="#corpus" className="desk-btn desk-btn-primary no-underline">
+                File policies
+              </a>
+              <a href="#workflows" className="desk-btn desk-btn-ghost no-underline">
+                Open workflows
+              </a>
+            </div>
           </div>
+          <div className="hero-orb hidden md:block" aria-hidden />
         </section>
 
         {apiStatus === 'offline' && (
-          <div className="desk-rise mb-6 rounded-[14px] border border-[rgba(159,18,57,0.25)] bg-[rgba(159,18,57,0.06)] px-4 py-3 text-sm text-[var(--bad)]">
+          <div className="desk-rise mb-8 rounded-[16px] border border-[rgba(255,59,48,0.2)] bg-[rgba(255,59,48,0.06)] px-4 py-3.5 text-sm text-[var(--bad)]">
             Cannot reach the Lumina API. Start the backend on port 8000, then refresh.
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="space-y-6">
+        <div id="corpus" className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="desk-rise-delay space-y-5">
             <FileUpload onUploadComplete={handleUploadComplete} />
             <DocumentLibrary
               documents={documents}
@@ -245,13 +229,12 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="space-y-6">
-            <section className="desk-panel p-5 md:p-6">
-              <p className="desk-kicker">Policy interrogation</p>
-              <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">Ask the HIPAA corpus</h2>
-              <p className="mt-1 mb-5 text-sm leading-relaxed text-[var(--muted)]">
-                Replace “I think the policy says…” with cited findings from your Notice of Privacy
-                Practices, IRP, and workforce procedures.
+          <div className="space-y-5">
+            <section className="desk-panel p-6 md:p-7">
+              <p className="desk-kicker">Ask</p>
+              <h2 className="section-title mt-1">Ask the HIPAA corpus</h2>
+              <p className="mt-2 mb-6 text-[15px] leading-relaxed text-[var(--muted)]">
+                Replace guesswork with cited findings from your NPP, IRP, and workforce procedures.
               </p>
               <ChatBox
                 onResponseGenerated={handleNewResponse}
@@ -259,7 +242,7 @@ export default function HomePage() {
                 onDraftConsumed={() => setDraftQuestion(undefined)}
                 disabled={!hasCorpus || apiStatus === 'offline'}
               />
-              <div className="mt-5">
+              <div className="mt-6">
                 <SuggestedQuestions
                   suggestions={suggestions}
                   loading={suggestionsLoading}
@@ -286,16 +269,16 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mt-10 mb-4">
-          <p className="desk-kicker">Privacy officer workflows</p>
-          <h2 className="mt-1 text-[1.7rem] text-[var(--ink)]">Daily HIPAA operations</h2>
-          <p className="mt-1 max-w-2xl text-sm text-[var(--muted)]">
-            The same three desks that dominate Privacy Officer software: breach clocks, individual
-            rights, and Business Associate diligence — grounded in your filed policies.
+        <div id="workflows" className="mt-16 mb-6 desk-fade">
+          <p className="desk-kicker">Daily operations</p>
+          <h2 className="section-title mt-1">Privacy workflows</h2>
+          <p className="mt-2 max-w-xl text-[15px] text-[var(--muted)]">
+            Breach clocks, individual rights, and Business Associate diligence — grounded in your
+            filed policies when available.
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-1">
+        <div className="grid gap-5">
           <BreachClock disabled={apiStatus === 'offline'} />
           <AccessRequestGuide disabled={apiStatus === 'offline'} />
           <BaaScreen disabled={apiStatus === 'offline'} />

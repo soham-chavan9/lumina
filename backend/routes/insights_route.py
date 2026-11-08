@@ -3,7 +3,6 @@
 import json
 import logging
 import re
-from typing import List
 
 from fastapi import APIRouter, HTTPException
 from langchain_core.output_parsers import StrOutputParser
@@ -95,7 +94,7 @@ def get_suggestions() -> SuggestionsResponse:
         chain = SUGGEST_PROMPT | get_lumina_model() | StrOutputParser()
         raw = chain.invoke({"sources": sources, "context": context})
         data = _extract_json(raw)
-        items: List[SuggestionItem] = []
+        items: list[SuggestionItem] = []
         for row in data[:4]:
             items.append(
                 SuggestionItem(

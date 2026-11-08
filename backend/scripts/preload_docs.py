@@ -5,8 +5,8 @@ Run this once before using the app to 'train' Lumina on compliance documents.
 
 import os
 import sys
+
 from dotenv import load_dotenv
-from typing import List
 
 # Load .env file
 load_dotenv()
@@ -14,9 +14,8 @@ load_dotenv()
 # Ensure correct import path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.pdf_parser import extract_text_from_pdf
 from utils.embed_store import PersistentEmbedStore
-
+from utils.pdf_parser import extract_text_from_pdf
 
 UPLOAD_DIR = "data/testing_pdfs"
 
@@ -31,7 +30,7 @@ def preload_docs():
         print(f"⚠️ Directory not found: {UPLOAD_DIR}")
         return
 
-    pdf_files: List[str] = [
+    pdf_files: list[str] = [
         f for f in os.listdir(UPLOAD_DIR) if f.lower().endswith(".pdf")
     ]
     if not pdf_files:

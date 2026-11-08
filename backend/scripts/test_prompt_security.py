@@ -49,4 +49,4 @@ for test in test_cases:
         print(f"Question: {question['question']}")
         print(f"Answer: {result.get('answer', 'No answer')}")
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"❌ Error: {e!s}")
