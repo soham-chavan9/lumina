@@ -18,6 +18,7 @@ def test_breach_clock_request():
         description="Enough characters for a valid incident",
         discovered_at="2026-11-07",
         phi_involved=True,
+        acknowledge_phi_export=True,
     )
     assert payload.phi_involved is True
 
