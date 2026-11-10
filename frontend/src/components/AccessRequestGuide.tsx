@@ -15,7 +15,7 @@ export default function AccessRequestGuide({ disabled }: Props) {
     'access' | 'amendment' | 'restriction' | 'accounting'
   >('access')
   const [receivedAt, setReceivedAt] = useState(new Date().toISOString().slice(0, 10))
-  const [channel, setChannel] = useState('patient portal')
+  const [channel, setChannel] = useState('')
   const [notes, setNotes] = useState('')
   const [ackPhi, setAckPhi] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -94,7 +94,6 @@ export default function AccessRequestGuide({ disabled }: Props) {
             onChange={(e) => setNotes(e.target.value)}
             disabled={disabled || loading}
             className="desk-field"
-            placeholder="Records, date range, format…"
           />
         </label>
         <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">

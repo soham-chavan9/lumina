@@ -15,6 +15,8 @@ export default function SuggestedQuestions({
   onSelect,
   disabled,
 }: Props) {
+  if (!loading && suggestions.length === 0) return null
+
   return (
     <section>
       <p className="desk-kicker mb-3">Suggested</p>

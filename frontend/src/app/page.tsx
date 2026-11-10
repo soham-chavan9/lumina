@@ -67,24 +67,7 @@ export default function HomePage() {
       const items = await fetchSuggestions()
       setSuggestions(items)
     } catch {
-      setSuggestions([
-        {
-          question: 'What is our breach notification timeline after discovery of unsecured PHI?',
-          category: 'Breach',
-        },
-        {
-          question: 'How do we fulfill a patient’s right of access to their designated record set?',
-          category: 'Access',
-        },
-        {
-          question: 'When is a Business Associate Agreement required before sharing PHI with a vendor?',
-          category: 'BAA',
-        },
-        {
-          question: 'What does minimum necessary require for workforce uses of PHI?',
-          category: 'Privacy',
-        },
-      ])
+      setSuggestions([])
     } finally {
       setSuggestionsLoading(false)
     }
@@ -248,14 +231,16 @@ export default function HomePage() {
                 onDraftConsumed={() => setDraftQuestion(undefined)}
                 disabled={!hasCorpus || apiStatus === 'offline'}
               />
-              <div className="mt-6">
-                <SuggestedQuestions
-                  suggestions={suggestions}
-                  loading={suggestionsLoading}
-                  onSelect={setDraftQuestion}
-                  disabled={!hasCorpus || apiStatus === 'offline'}
-                />
-              </div>
+              {hasCorpus && (
+                <div className="mt-6">
+                  <SuggestedQuestions
+                    suggestions={suggestions}
+                    loading={suggestionsLoading}
+                    onSelect={setDraftQuestion}
+                    disabled={apiStatus === 'offline'}
+                  />
+                </div>
+              )}
             </section>
 
             {responses.length > 0 && (

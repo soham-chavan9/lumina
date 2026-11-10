@@ -65,7 +65,6 @@ export default function BreachClock({ disabled }: Props) {
             disabled={disabled || loading || !ackPhi}
             className="desk-field"
             rows={3}
-            placeholder="Wrong-patient email with discharge summary sent externally…"
           />
         </label>
         <label>
@@ -98,7 +97,6 @@ export default function BreachClock({ disabled }: Props) {
             onChange={(e) => setRecipient(e.target.value)}
             disabled={disabled || loading}
             className="desk-field"
-            placeholder="External inbox, lost laptop, unknown actor…"
           />
         </label>
         <label className="flex items-center gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">

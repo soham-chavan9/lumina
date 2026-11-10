@@ -22,25 +22,6 @@ from backend.utils.embed_store import get_embed_store
 router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])
 logger = logging.getLogger(__name__)
 
-DEFAULT_SUGGESTIONS = [
-    SuggestionItem(
-        question="What is our breach notification timeline after discovery of unsecured PHI?",
-        category="breach",
-    ),
-    SuggestionItem(
-        question="How do we fulfill a patient’s right of access to their designated record set?",
-        category="access",
-    ),
-    SuggestionItem(
-        question="When is a Business Associate Agreement required before sharing PHI with a vendor?",
-        category="baa",
-    ),
-    SuggestionItem(
-        question="What does minimum necessary require for workforce uses of PHI?",
-        category="privacy",
-    ),
-]
-
 SUGGEST_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
@@ -84,7 +65,7 @@ def _extract_json(text: str):
 def get_suggestions() -> SuggestionsResponse:
     store = get_embed_store()
     if not store.is_ready():
-        return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+        return SuggestionsResponse(suggestions=[])
 
     docs = store.list_documents()
     sources = ", ".join(d["source"] for d in docs) or "uploaded policies"
@@ -95,7 +76,7 @@ def get_suggestions() -> SuggestionsResponse:
     )
     context = "\n\n".join(h["text"][:700] for h in hits)[:3200]
     if not context:
-        return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+        return SuggestionsResponse(suggestions=[])
 
     try:
         chain = SUGGEST_PROMPT | get_lumina_model() | StrOutputParser()
@@ -113,9 +94,9 @@ def get_suggestions() -> SuggestionsResponse:
         if items:
             return SuggestionsResponse(suggestions=items)
     except Exception:
-        logger.exception("Suggestion generation failed; using defaults")
+        logger.exception("Suggestion generation failed; returning none")
 
-    return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+    return SuggestionsResponse(suggestions=[])
 
 
 @router.post("/scan", response_model=RiskScanResponse)

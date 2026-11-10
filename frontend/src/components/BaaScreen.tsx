@@ -55,7 +55,6 @@ export default function BaaScreen({ disabled }: Props) {
             onChange={(e) => setVendorName(e.target.value)}
             disabled={disabled || loading}
             className="desk-field"
-            placeholder="Acme Cloud Transcription"
           />
         </label>
         <label className="flex items-center gap-2.5 self-end pb-3 text-[14px] text-[var(--ink)]">
@@ -78,7 +77,6 @@ export default function BaaScreen({ disabled }: Props) {
             disabled={disabled || loading}
             rows={3}
             className="desk-field"
-            placeholder="Hosts imaging archive; support staff can view studies remotely…"
           />
         </label>
         <label className="md:col-span-2">
@@ -88,7 +86,6 @@ export default function BaaScreen({ disabled }: Props) {
             onChange={(e) => setNotes(e.target.value)}
             disabled={disabled || loading}
             className="desk-field"
-            placeholder="Subprocessors, offshore support, SOC 2…"
           />
         </label>
         <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">

@@ -43,11 +43,7 @@ export default function FileUpload({ onUploadComplete }: Props) {
       <h2 className="section-title mt-1 text-[1.65rem]">File policies</h2>
       <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
         Drop Notice of Privacy Practices, breach procedures, BAA playbooks, and sanctions
-        policies. Try{' '}
-        <code className="rounded-md bg-[rgba(0,0,0,0.05)] px-1.5 py-0.5 text-[13px] text-[var(--accent)]">
-          HIPAA_Sample_Compliance.pdf
-        </code>
-        .
+        policies.
       </p>
 
       <label
