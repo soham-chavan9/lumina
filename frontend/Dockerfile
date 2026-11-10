@@ -8,7 +8,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_LUMINA_API_KEY=
+ARG NEXT_PUBLIC_LUMINA_TENANT_ID=default
+# NEXT_PUBLIC_* values are compiled into the browser bundle at build time.
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_LUMINA_API_KEY=$NEXT_PUBLIC_LUMINA_API_KEY \
+    NEXT_PUBLIC_LUMINA_TENANT_ID=$NEXT_PUBLIC_LUMINA_TENANT_ID
 RUN npm run build
 
 FROM node:20-alpine AS runner

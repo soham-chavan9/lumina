@@ -31,6 +31,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_LUMINA_API_KEY: ${NEXT_PUBLIC_LUMINA_API_KEY:-}
+        NEXT_PUBLIC_LUMINA_TENANT_ID: ${NEXT_PUBLIC_LUMINA_TENANT_ID:-default}
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3000}:3000"

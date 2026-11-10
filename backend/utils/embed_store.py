@@ -6,6 +6,7 @@ import glob
 import json
 import logging
 import os
+import shutil
 import threading
 from pathlib import Path
 
@@ -34,9 +35,31 @@ def get_embed_store(tenant_id: str | None = None) -> PersistentEmbedStore:
         store = _store_instances.get(tid)
         if store is None:
             path = DEFAULT_PERSIST / "tenants" / tid
+            if tid == "default":
+                _migrate_legacy_store(path)
             store = PersistentEmbedStore(persist_path=str(path))
             _store_instances[tid] = store
         return store
+
+
+LEGACY_INDEX_FILES = ("index.faiss", "index.pkl")
+
+
+def _migrate_legacy_store(target: Path) -> None:
+    """Copy a pre-tenant corpus (saved directly under DEFAULT_PERSIST) into the default tenant.
+
+    Runs once: skipped when the default tenant already has an index. The legacy
+    files are copied, not moved, so the old layout stays as a fallback.
+    """
+    if (target / "index.faiss").exists():
+        return
+    legacy = [DEFAULT_PERSIST / name for name in LEGACY_INDEX_FILES]
+    if not all(f.exists() for f in legacy):
+        return
+    target.mkdir(parents=True, exist_ok=True)
+    for f in legacy:
+        shutil.copy2(f, target / f.name)
+    logger.info("Migrated legacy corpus from %s into %s", DEFAULT_PERSIST, target)
 
 
 class PersistentEmbedStore:

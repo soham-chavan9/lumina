@@ -12,6 +12,8 @@ os.environ.setdefault("LUMINA_ENV", "development")
 os.environ.setdefault("LUMINA_SEED_SAMPLE_DOCS", "false")
 os.environ.setdefault("LUMINA_RATE_LIMIT_PER_MINUTE", "10000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
+# Keep a developer's local .env API key from leaking into tests (dotenv never overrides).
+os.environ.setdefault("LUMINA_API_KEY", "")
 
 
 @pytest.fixture(scope="session")
