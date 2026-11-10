@@ -1,0 +1,21 @@
+target-version = "py312"
+line-length = 100
+
+exclude = [
+  "venv",
+  ".venv",
+  "backend/scripts",
+  "backend/chains",
+  "backend/utils/vector_store.py",
+  "backend/utils/logger.py",
+  "backend/utils/performance_logger.py",
+  "**/__pycache__",
+]
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B008", "B904"]
+
+[lint.per-file-ignores]
+"backend/tests/*" = ["B011"]
+"backend/main.py" = ["E402"]

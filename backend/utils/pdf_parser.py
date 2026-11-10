@@ -1,11 +1,11 @@
 # backend/utils/pdf_parser.py
 
-import fitz  # PyMuPDF
 from io import BytesIO
-from typing import List, Dict, Union
+
+import fitz  # PyMuPDF
 
 
-def extract_text_from_pdf(file_bytes: Union[bytes, str]) -> str:
+def extract_text_from_pdf(file_bytes: bytes | str) -> str:
     """
     Extract clean, deduplicated text content from PDF.
     Accepts either bytes (from upload) or file path (string).
@@ -36,7 +36,7 @@ def extract_text_from_pdf(file_bytes: Union[bytes, str]) -> str:
         return "Error: Unable to extract text from PDF."
 
 
-def extract_text_with_metadata(file_bytes: Union[bytes, str]) -> List[Dict[str, str]]:
+def extract_text_with_metadata(file_bytes: bytes | str) -> list[dict[str, str]]:
     """
     Extracts text with per-page metadata for better RAG traceability.
     Returns: [{ "page": int, "text": str }]

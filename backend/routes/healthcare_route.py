@@ -6,12 +6,12 @@ import json
 import logging
 import re
 from datetime import date, datetime, timedelta
-from typing import List, Optional, Tuple
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from backend.auth import require_api_key
 from backend.llm_workflow import get_lumina_model
 from backend.schemas import (
     AccessRequestGuideRequest,
@@ -22,9 +22,10 @@ from backend.schemas import (
     BreachClockResponse,
     BreachFactor,
 )
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])
 logger = logging.getLogger(__name__)
 
 
@@ -35,48 +36,69 @@ def _extract_json(text: str):
     return json.loads(text)
 
 
-def _parse_day(value: str) -> date:
+def _parse_day(value: str, *, allow_future: bool = False) -> date:
     raw = value.strip()
+    parsed: date | None = None
     for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y"):
         try:
-            return datetime.strptime(raw[:10] if "T" in raw else raw, fmt).date()
+            parsed = datetime.strptime(raw[:10] if "T" in raw else raw, fmt).date()
+            break
         except ValueError:
             continue
-    try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
-    except ValueError as exc:
+    if parsed is None:
+        try:
+            parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Use an ISO date like 2026-11-07 for discovered/received dates.",
+            ) from exc
+    if not allow_future and parsed > date.today():
         raise HTTPException(
             status_code=422,
-            detail="Use an ISO date like 2026-11-07 for discovered/received dates.",
-        ) from exc
+            detail="Discovery/received date cannot be in the future.",
+        )
+    return parsed
 
 
-def _deadline_meta(start: date, days: int) -> Tuple[str, Optional[int]]:
+def _deadline_meta(start: date, days: int) -> tuple[str, int | None]:
     deadline = start + timedelta(days=days)
     remaining = (deadline - date.today()).days
     return deadline.isoformat(), remaining
 
 
-def _corpus_context(query: str, max_chars: int = 5500) -> Tuple[str, List[str]]:
+def _corpus_context(query: str, max_chars: int = 5500) -> tuple[str, list[str]]:
+    """Retrieve matching passages only — never dump the whole corpus on a miss."""
     store = get_embed_store()
     if not store.is_ready():
         return "", []
     hits = store.query(query, k=8, max_distance=1.35)
     if not hits:
-        sample = store.sample_context(max_chars)
-        sources = [d["source"] for d in store.list_documents()]
-        return sample, sources
+        return "", []
     parts = []
     sources = sorted({h["source"] for h in hits})
     total = 0
     for hit in hits:
-        chunk = f"[{hit['source']}]\n{hit['text']}"
+        # Cap each passage so a single hit cannot exfiltrate a large blob.
+        text = hit["text"][:900]
+        chunk = f"[{hit['source']}]\n{text}"
         if total + len(chunk) > max_chars:
             break
         parts.append(chunk)
         total += len(chunk)
     return "\n\n".join(parts), sources
 
+
+
+def _require_phi_ack(acknowledged: bool) -> None:
+    if not acknowledged:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "acknowledge_phi_export must be true. Lumina may send workflow "
+                "details to the configured model provider — confirm before continuing."
+            ),
+        )
 
 BREACH_PROMPT = ChatPromptTemplate.from_messages(
     [
@@ -146,12 +168,14 @@ BAA_PROMPT = ChatPromptTemplate.from_messages(
 
 @router.post("/breach-clock", response_model=BreachClockResponse)
 def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     discovered = _parse_day(payload.discovered_at)
     deadline, remaining = _deadline_meta(discovered, 60)
     context, sources = _corpus_context(
         f"breach notification incident response PHI disclosure {payload.description}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (BREACH_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -166,8 +190,10 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("Breach clock LLM failed; using deterministic HIPAA shell")
+        mode = "fallback"
         data = {
             "summary": (
                 "Treat this as a potential breach of unsecured PHI until the four-factor "
@@ -183,7 +209,11 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
                 },
                 {
                     "factor": "Unauthorized person",
-                    "assessment": payload.unauthorized_recipient
+                    "assessment": (
+                        (payload.unauthorized_recipient[:280] + "…")
+                        if len(payload.unauthorized_recipient) > 280
+                        else payload.unauthorized_recipient
+                    )
                     or "Identify who received or could access the PHI.",
                     "risk": "Medium",
                 },
@@ -231,17 +261,20 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
         immediate_actions=[str(x) for x in data.get("immediate_actions", []) if str(x).strip()][:8],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )
 
 
 @router.post("/access-request", response_model=AccessRequestGuideResponse)
 def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGuideResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     received = _parse_day(payload.received_at)
     deadline, remaining = _deadline_meta(received, 30)
     context, sources = _corpus_context(
         f"individual right of access amendment accounting of disclosures {payload.request_type}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (ACCESS_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -253,8 +286,10 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("Access guide LLM failed; using statutory shell")
+        mode = "fallback"
         data = {
             "summary": (
                 f"Treat this {payload.request_type} request as received on {received.isoformat()}. "
@@ -287,15 +322,18 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
         ][:6],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )
 
 
 @router.post("/baa-screen", response_model=BaaScreenResponse)
 def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
+    _require_phi_ack(payload.acknowledge_phi_export)
     context, sources = _corpus_context(
         f"business associate agreement vendor PHI {payload.vendor_name} {payload.services}"
     )
 
+    mode: str = "fallback"
     try:
         raw = (BAA_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
             {
@@ -307,12 +345,15 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
             }
         )
         data = _extract_json(raw)
+        mode = "policy_grounded" if context else "fallback"
     except Exception:
         logger.exception("BAA screen LLM failed; using diligence shell")
+        mode = "fallback"
         needs = payload.creates_receives_maintains_or_transmits_phi
         data = {
             "summary": (
-                f"{payload.vendor_name} appears to {'require' if needs else 'may not require'} a BAA "
+                f"{payload.vendor_name} "
+                f"{'appears to require' if needs else 'may not require'} a BAA "
                 "based on whether it creates/receives/maintains/transmits PHI for your covered entity. "
                 "Do not share PHI until Privacy/Legal clears the contract package."
             ),
@@ -359,4 +400,5 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
         blockers=[str(x) for x in data.get("blockers", []) if str(x).strip()][:6],
         policy_citations=[str(x) for x in data.get("policy_citations", []) if str(x).strip()][:6],
         sources=sources,
+        mode=mode,  # type: ignore[arg-type]
     )

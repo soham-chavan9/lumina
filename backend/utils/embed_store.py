@@ -1,4 +1,4 @@
-"""Single shared FAISS vector store — one embedding model, one persist path, one process singleton."""
+"""Per-tenant FAISS vector store — one embedding model, isolated persist path per tenant."""
 
 from __future__ import annotations
 
@@ -6,42 +6,69 @@ import glob
 import json
 import logging
 import os
+import shutil
 import threading
 from pathlib import Path
-from typing import List, Optional
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+from backend.storage import data_dir
 from backend.utils.pdf_parser import extract_text_from_pdf
 
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_PERSIST = BACKEND_DIR / "data" / "vector_store"
+DEFAULT_PERSIST = data_dir() / "vector_store"
 DEFAULT_EMBED_MODEL = os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small")
 
 _store_lock = threading.Lock()
-_store_instance: Optional["PersistentEmbedStore"] = None
+_store_instances: dict[str, PersistentEmbedStore] = {}
 
 
-def get_embed_store() -> "PersistentEmbedStore":
-    """Process-wide singleton so upload and ask share the same in-memory index."""
-    global _store_instance
-    if _store_instance is None:
-        with _store_lock:
-            if _store_instance is None:
-                _store_instance = PersistentEmbedStore()
-    return _store_instance
+def get_embed_store(tenant_id: str | None = None) -> PersistentEmbedStore:
+    """Per-tenant FAISS store so corpora do not bleed across X-Tenant-Id values."""
+    from backend.tenant import get_current_tenant, sanitize_tenant_id
+
+    tid = sanitize_tenant_id(tenant_id or get_current_tenant())
+    with _store_lock:
+        store = _store_instances.get(tid)
+        if store is None:
+            path = DEFAULT_PERSIST / "tenants" / tid
+            if tid == "default":
+                _migrate_legacy_store(path)
+            store = PersistentEmbedStore(persist_path=str(path))
+            _store_instances[tid] = store
+        return store
+
+
+LEGACY_INDEX_FILES = ("index.faiss", "index.pkl")
+
+
+def _migrate_legacy_store(target: Path) -> None:
+    """Copy a pre-tenant corpus (saved directly under DEFAULT_PERSIST) into the default tenant.
+
+    Runs once: skipped when the default tenant already has an index. The legacy
+    files are copied, not moved, so the old layout stays as a fallback.
+    """
+    if (target / "index.faiss").exists():
+        return
+    legacy = [DEFAULT_PERSIST / name for name in LEGACY_INDEX_FILES]
+    if not all(f.exists() for f in legacy):
+        return
+    target.mkdir(parents=True, exist_ok=True)
+    for f in legacy:
+        shutil.copy2(f, target / f.name)
+    logger.info("Migrated legacy corpus from %s into %s", DEFAULT_PERSIST, target)
 
 
 class PersistentEmbedStore:
-    def __init__(self, persist_path: Optional[str] = None):
+    def __init__(self, persist_path: str | None = None):
         self.persist_path = Path(persist_path or DEFAULT_PERSIST)
         self.persist_path.mkdir(parents=True, exist_ok=True)
         self.embedding_model = OpenAIEmbeddings(model=DEFAULT_EMBED_MODEL)
-        self.vectorstore: Optional[FAISS] = None
+        self.vectorstore: FAISS | None = None
         self._load()
 
     def _load(self) -> None:
@@ -98,7 +125,7 @@ class PersistentEmbedStore:
         )
         return len(docs)
 
-    def query(self, question: str, k: int = 6, max_distance: float = 1.2) -> List[dict]:
+    def query(self, question: str, k: int = 6, max_distance: float = 1.2) -> list[dict]:
         """Return chunks under a FAISS L2 distance threshold (lower = closer)."""
         if not self.vectorstore:
             return []
@@ -119,7 +146,7 @@ class PersistentEmbedStore:
             )
         return filtered
 
-    def index_pdfs_from_folder(self, folder_path: Optional[str] = None) -> int:
+    def index_pdfs_from_folder(self, folder_path: str | None = None) -> int:
         folder = Path(folder_path or (BACKEND_DIR / "data" / "testing_pdfs"))
         pdf_paths = sorted(glob.glob(str(folder / "*.pdf")))
         indexed = 0
@@ -134,7 +161,7 @@ class PersistentEmbedStore:
                 logger.error("Failed to index %s: %s", path, exc)
         return indexed
 
-    def list_documents(self) -> List[dict]:
+    def list_documents(self) -> list[dict]:
         if not self.vectorstore:
             return []
         counts: dict[str, int] = {}
@@ -153,7 +180,7 @@ class PersistentEmbedStore:
     def sample_context(self, max_chars: int = 5000) -> str:
         if not self.vectorstore:
             return ""
-        parts: List[str] = []
+        parts: list[str] = []
         total = 0
         with _store_lock:
             for doc_id in list(self.vectorstore.index_to_docstore_id.values())[:40]:

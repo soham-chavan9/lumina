@@ -3,12 +3,12 @@
 import json
 import logging
 import re
-from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from backend.auth import require_api_key
 from backend.llm_workflow import get_lumina_model
 from backend.schemas import (
     RiskFinding,
@@ -16,29 +16,11 @@ from backend.schemas import (
     SuggestionItem,
     SuggestionsResponse,
 )
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])
 logger = logging.getLogger(__name__)
-
-DEFAULT_SUGGESTIONS = [
-    SuggestionItem(
-        question="What is our breach notification timeline after discovery of unsecured PHI?",
-        category="breach",
-    ),
-    SuggestionItem(
-        question="How do we fulfill a patient’s right of access to their designated record set?",
-        category="access",
-    ),
-    SuggestionItem(
-        question="When is a Business Associate Agreement required before sharing PHI with a vendor?",
-        category="baa",
-    ),
-    SuggestionItem(
-        question="What does minimum necessary require for workforce uses of PHI?",
-        category="privacy",
-    ),
-]
 
 SUGGEST_PROMPT = ChatPromptTemplate.from_messages(
     [
@@ -83,19 +65,24 @@ def _extract_json(text: str):
 def get_suggestions() -> SuggestionsResponse:
     store = get_embed_store()
     if not store.is_ready():
-        return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+        return SuggestionsResponse(suggestions=[])
 
     docs = store.list_documents()
     sources = ", ".join(d["source"] for d in docs) or "uploaded policies"
-    context = store.sample_context(3500)
+    hits = store.query(
+        "HIPAA breach access BAA privacy minimum necessary sanctions",
+        k=6,
+        max_distance=1.4,
+    )
+    context = "\n\n".join(h["text"][:700] for h in hits)[:3200]
     if not context:
-        return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+        return SuggestionsResponse(suggestions=[])
 
     try:
         chain = SUGGEST_PROMPT | get_lumina_model() | StrOutputParser()
         raw = chain.invoke({"sources": sources, "context": context})
         data = _extract_json(raw)
-        items: List[SuggestionItem] = []
+        items: list[SuggestionItem] = []
         for row in data[:4]:
             items.append(
                 SuggestionItem(
@@ -107,9 +94,9 @@ def get_suggestions() -> SuggestionsResponse:
         if items:
             return SuggestionsResponse(suggestions=items)
     except Exception:
-        logger.exception("Suggestion generation failed; using defaults")
+        logger.exception("Suggestion generation failed; returning none")
 
-    return SuggestionsResponse(suggestions=DEFAULT_SUGGESTIONS)
+    return SuggestionsResponse(suggestions=[])
 
 
 @router.post("/scan", response_model=RiskScanResponse)
@@ -123,7 +110,12 @@ def run_risk_scan() -> RiskScanResponse:
 
     docs = store.list_documents()
     sources = [d["source"] for d in docs]
-    context = store.sample_context(6000)
+    hits = store.query(
+        "HIPAA privacy security breach BAA access rights minimum necessary sanctions OCR",
+        k=10,
+        max_distance=1.45,
+    )
+    context = "\n\n".join(h["text"][:900] for h in hits)[:5500]
     if not context:
         raise HTTPException(status_code=400, detail="No readable document context found.")
 

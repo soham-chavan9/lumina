@@ -15,8 +15,9 @@ export default function AccessRequestGuide({ disabled }: Props) {
     'access' | 'amendment' | 'restriction' | 'accounting'
   >('access')
   const [receivedAt, setReceivedAt] = useState(new Date().toISOString().slice(0, 10))
-  const [channel, setChannel] = useState('patient portal')
+  const [channel, setChannel] = useState('')
   const [notes, setNotes] = useState('')
+  const [ackPhi, setAckPhi] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<AccessRequestGuideResponse | null>(null)
@@ -32,6 +33,7 @@ export default function AccessRequestGuide({ disabled }: Props) {
         received_at: receivedAt,
         channel,
         notes,
+        acknowledge_phi_export: ackPhi,
       })
       setResult(data)
     } catch (err) {
@@ -42,22 +44,22 @@ export default function AccessRequestGuide({ disabled }: Props) {
   }
 
   return (
-    <section className="desk-panel p-5 md:p-6">
+    <section className="desk-panel p-6 md:p-7">
       <p className="desk-kicker">Individual rights</p>
-      <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">Patient access request guide</h2>
-      <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-        Access requests die in inboxes. Start the 30-day clock, pull the checklist from your
-        filed policies, and surface denial/delay rules before OCR asks.
+      <h2 className="section-title mt-1 text-[1.65rem]">Patient access request</h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
+        Start the 30-day clock, pull the checklist, and surface denial or delay rules before OCR
+        asks.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-2">
-        <label className="text-sm text-[var(--ink-soft)]">
-          Request type
+      <form onSubmit={onSubmit} className="mt-5 grid gap-4 md:grid-cols-2">
+        <label>
+          <span className="label-quiet">Request type</span>
           <select
             value={requestType}
             onChange={(e) => setRequestType(e.target.value as typeof requestType)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
+            className="desk-field"
           >
             <option value="access">Access (§164.524)</option>
             <option value="amendment">Amendment</option>
@@ -65,38 +67,51 @@ export default function AccessRequestGuide({ disabled }: Props) {
             <option value="accounting">Accounting of disclosures</option>
           </select>
         </label>
-        <label className="text-sm text-[var(--ink-soft)]">
-          Received date
+        <label>
+          <span className="label-quiet">Received date</span>
           <input
             type="date"
             required
             value={receivedAt}
             onChange={(e) => setReceivedAt(e.target.value)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
+            className="desk-field"
           />
         </label>
-        <label className="text-sm text-[var(--ink-soft)]">
-          Channel
+        <label>
+          <span className="label-quiet">Channel</span>
           <input
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
+            className="desk-field"
           />
         </label>
-        <label className="text-sm text-[var(--ink-soft)]">
-          Notes
+        <label>
+          <span className="label-quiet">Notes</span>
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
-            placeholder="Records requested, date range, format…"
+            className="desk-field"
           />
         </label>
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">
+          <input
+            type="checkbox"
+            checked={ackPhi}
+            onChange={(e) => setAckPhi(e.target.checked)}
+            disabled={disabled || loading}
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            required
+          />
+          <span>
+            I understand request details may be sent to the configured model provider and are not
+            legal advice.
+          </span>
+        </label>
         <div className="md:col-span-2">
-          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading}>
+          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading || !ackPhi}>
             {loading ? <Loader2 size={16} className="animate-spin" /> : <FolderHeart size={16} />}
             {loading ? 'Building guide…' : 'Open access guide'}
           </button>
@@ -104,43 +119,53 @@ export default function AccessRequestGuide({ disabled }: Props) {
       </form>
 
       {error && (
-        <p className="mt-3 rounded-[12px] bg-[rgba(159,18,57,0.08)] px-3 py-2 text-sm text-[var(--bad)]">
+        <p className="mt-4 rounded-[12px] bg-[rgba(255,59,48,0.08)] px-3.5 py-2.5 text-sm text-[var(--bad)]">
           {error}
         </p>
       )}
 
       {result && (
-        <div className="desk-rise mt-5 space-y-4 border-t border-[var(--line)] pt-4">
+        <div className="desk-rise mt-6 space-y-5 border-t border-[var(--line)] pt-5">
+          {result.mode === 'fallback' && (
+            <p className="rounded-[12px] bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[13px] text-[var(--ink-soft)]">
+              Degraded mode — statutory shell only. Not grounded in filed policies. Confirm with
+              Privacy/Legal before acting.
+            </p>
+          )}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="desk-kicker">Action deadline</p>
-              <p className="mt-1 font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-                {result.statutory_deadline}
-              </p>
+              <p className="result-metric mt-1">{result.statutory_deadline}</p>
             </div>
-            <div className="rounded-full border border-[var(--line)] bg-white px-3 py-1.5 text-sm tabular-nums">
+            <span className="pill tabular-nums">
               {result.days_remaining == null
                 ? '—'
                 : result.days_remaining >= 0
                   ? `${result.days_remaining} days remaining`
                   : `${Math.abs(result.days_remaining)} days overdue`}
-            </div>
+            </span>
           </div>
-          <p className="text-sm leading-relaxed text-[var(--ink)]">{result.summary}</p>
+          <p className="text-[15px] leading-relaxed text-[var(--ink)]">{result.summary}</p>
           <div>
-            <p className="desk-kicker mb-2">Fulfillment checklist</p>
-            <ul className="space-y-1.5 text-sm text-[var(--ink-soft)]">
+            <p className="desk-kicker mb-2.5">Fulfillment checklist</p>
+            <ul className="space-y-2 text-[14px] text-[var(--ink-soft)]">
               {result.checklist.map((item) => (
-                <li key={item}>— {item}</li>
+                <li key={item} className="flex gap-2">
+                  <span className="text-[var(--accent)]">•</span>
+                  <span>{item}</span>
+                </li>
               ))}
             </ul>
           </div>
           {result.denial_or_delay_rules.length > 0 && (
             <div>
-              <p className="desk-kicker mb-2">Denial / delay rules</p>
-              <ul className="space-y-1.5 text-sm text-[var(--ink-soft)]">
+              <p className="desk-kicker mb-2.5">Denial / delay rules</p>
+              <ul className="space-y-2 text-[14px] text-[var(--ink-soft)]">
                 {result.denial_or_delay_rules.map((item) => (
-                  <li key={item}>— {item}</li>
+                  <li key={item} className="flex gap-2">
+                    <span className="text-[var(--accent)]">•</span>
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>

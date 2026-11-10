@@ -11,6 +11,7 @@ export default function BaaScreen({ disabled }: Props) {
   const [services, setServices] = useState('')
   const [phi, setPhi] = useState(true)
   const [notes, setNotes] = useState('')
+  const [ackPhi, setAckPhi] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<BaaScreenResponse | null>(null)
@@ -26,6 +27,7 @@ export default function BaaScreen({ disabled }: Props) {
         services,
         creates_receives_maintains_or_transmits_phi: phi,
         notes,
+        acknowledge_phi_export: ackPhi,
       })
       setResult(data)
     } catch (err) {
@@ -36,37 +38,37 @@ export default function BaaScreen({ disabled }: Props) {
   }
 
   return (
-    <section className="desk-panel p-5 md:p-6">
+    <section className="desk-panel p-6 md:p-7">
       <p className="desk-kicker">Vendor diligence</p>
-      <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">BAA / vendor screen</h2>
-      <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-        Procurement moves faster than Privacy. Screen whether a Business Associate Agreement is
-        required, which clauses your policies demand, and what to ask before PHI flows.
+      <h2 className="section-title mt-1 text-[1.65rem]">BAA / vendor screen</h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
+        Screen whether a Business Associate Agreement is required and which clauses to demand
+        before PHI flows.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-2">
-        <label className="text-sm text-[var(--ink-soft)]">
-          Vendor
+      <form onSubmit={onSubmit} className="mt-5 grid gap-4 md:grid-cols-2">
+        <label>
+          <span className="label-quiet">Vendor</span>
           <input
             required
             value={vendorName}
             onChange={(e) => setVendorName(e.target.value)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
-            placeholder="Acme Cloud Transcription"
+            className="desk-field"
           />
         </label>
-        <label className="flex items-center gap-2 self-end text-sm text-[var(--ink)]">
+        <label className="flex items-center gap-2.5 self-end pb-3 text-[14px] text-[var(--ink)]">
           <input
             type="checkbox"
             checked={phi}
             onChange={(e) => setPhi(e.target.checked)}
             disabled={disabled || loading}
+            className="h-4 w-4 accent-[var(--accent)]"
           />
           Creates / receives / maintains / transmits PHI
         </label>
-        <label className="md:col-span-2 text-sm text-[var(--ink-soft)]">
-          Services
+        <label className="md:col-span-2">
+          <span className="label-quiet">Services</span>
           <textarea
             required
             minLength={5}
@@ -74,22 +76,34 @@ export default function BaaScreen({ disabled }: Props) {
             onChange={(e) => setServices(e.target.value)}
             disabled={disabled || loading}
             rows={3}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
-            placeholder="Hosts imaging archive; support staff can view studies remotely…"
+            className="desk-field"
           />
         </label>
-        <label className="md:col-span-2 text-sm text-[var(--ink-soft)]">
-          Notes
+        <label className="md:col-span-2">
+          <span className="label-quiet">Notes</span>
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             disabled={disabled || loading}
-            className="mt-1 w-full rounded-[14px] border border-[var(--line)] bg-white px-3 py-2.5"
-            placeholder="Subprocessors, offshore support, SOC 2 available…"
+            className="desk-field"
           />
         </label>
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--ink)] md:col-span-2">
+          <input
+            type="checkbox"
+            checked={ackPhi}
+            onChange={(e) => setAckPhi(e.target.checked)}
+            disabled={disabled || loading}
+            className="mt-1 h-4 w-4 accent-[var(--accent)]"
+            required
+          />
+          <span>
+            I understand vendor details may be sent to the configured model provider and PHI must
+            not flow until Privacy/Legal clears the BAA.
+          </span>
+        </label>
         <div className="md:col-span-2">
-          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading}>
+          <button type="submit" className="desk-btn desk-btn-primary" disabled={disabled || loading || !ackPhi}>
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Handshake size={16} />}
             {loading ? 'Screening…' : 'Run BAA screen'}
           </button>
@@ -97,46 +111,59 @@ export default function BaaScreen({ disabled }: Props) {
       </form>
 
       {error && (
-        <p className="mt-3 rounded-[12px] bg-[rgba(159,18,57,0.08)] px-3 py-2 text-sm text-[var(--bad)]">
+        <p className="mt-4 rounded-[12px] bg-[rgba(255,59,48,0.08)] px-3.5 py-2.5 text-sm text-[var(--bad)]">
           {error}
         </p>
       )}
 
       {result && (
-        <div className="desk-rise mt-5 space-y-4 border-t border-[var(--line)] pt-4">
-          <div className="flex flex-wrap gap-2 text-sm">
-            <span className="rounded-full border border-[var(--line)] bg-white px-3 py-1">
+        <div className="desk-rise mt-6 space-y-5 border-t border-[var(--line)] pt-5">
+          {result.mode === 'fallback' && (
+            <p className="rounded-[12px] bg-[rgba(255,159,10,0.12)] px-3.5 py-2.5 text-[13px] text-[var(--ink-soft)]">
+              Degraded mode — diligence shell only. Not grounded in filed policies. Confirm with
+              Privacy/Legal before PHI flows.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <span className="pill">
               BAA likely required: {result.ba_likely_required ? 'Yes' : 'No / confirm'}
             </span>
-            <span className="rounded-full border border-[var(--line)] bg-white px-3 py-1">
-              Risk: {result.risk_level}
-            </span>
+            <span className="pill">Risk: {result.risk_level}</span>
           </div>
-          <p className="text-sm leading-relaxed text-[var(--ink)]">{result.summary}</p>
+          <p className="text-[15px] leading-relaxed text-[var(--ink)]">{result.summary}</p>
           {result.blockers.length > 0 && (
             <div>
-              <p className="desk-kicker mb-2">Blockers before PHI</p>
-              <ul className="space-y-1.5 text-sm text-[var(--bad)]">
+              <p className="desk-kicker mb-2.5">Blockers before PHI</p>
+              <ul className="space-y-2 text-[14px] text-[var(--bad)]">
                 {result.blockers.map((b) => (
-                  <li key={b}>— {b}</li>
+                  <li key={b} className="flex gap-2">
+                    <span>•</span>
+                    <span>{b}</span>
+                  </li>
                 ))}
               </ul>
             </div>
           )}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2">
             <div>
-              <p className="desk-kicker mb-2">Clause pack</p>
-              <ul className="space-y-1.5 text-sm text-[var(--ink-soft)]">
+              <p className="desk-kicker mb-2.5">Clause pack</p>
+              <ul className="space-y-2 text-[14px] text-[var(--ink-soft)]">
                 {result.required_clauses.map((c) => (
-                  <li key={c}>— {c}</li>
+                  <li key={c} className="flex gap-2">
+                    <span className="text-[var(--accent)]">•</span>
+                    <span>{c}</span>
+                  </li>
                 ))}
               </ul>
             </div>
             <div>
-              <p className="desk-kicker mb-2">Ask the vendor</p>
-              <ul className="space-y-1.5 text-sm text-[var(--ink-soft)]">
+              <p className="desk-kicker mb-2.5">Ask the vendor</p>
+              <ul className="space-y-2 text-[14px] text-[var(--ink-soft)]">
                 {result.diligence_questions.map((q) => (
-                  <li key={q}>— {q}</li>
+                  <li key={q} className="flex gap-2">
+                    <span className="text-[var(--accent)]">•</span>
+                    <span>{q}</span>
+                  </li>
                 ))}
               </ul>
             </div>

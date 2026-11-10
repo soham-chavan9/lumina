@@ -68,23 +68,23 @@ export default function ChatBox({
           placeholder={
             disabled
               ? 'File a HIPAA policy before asking…'
-              : 'Ask about breach notice, access rights, BAAs, minimum necessary…'
+              : 'Ask about breach notice, access rights, BAAs…'
           }
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           disabled={loading || disabled}
-          aria-label="Interrogate policies"
+          aria-label="Ask the corpus"
         />
         <button
           type="submit"
           disabled={loading || disabled || !question.trim()}
-          className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--teal)] text-white transition hover:bg-[var(--teal-deep)] disabled:opacity-40"
+          className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--accent)] text-white transition hover:bg-[var(--accent-deep)] disabled:opacity-35"
           aria-label="Send question"
         >
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
+          {loading ? <Loader2 size={15} className="animate-spin" /> : <ArrowUp size={15} />}
         </button>
       </form>
-      {error && <p className="mt-2 text-center text-sm text-[var(--bad)]">{error}</p>}
+      {error && <p className="mt-2.5 text-center text-sm text-[var(--bad)]">{error}</p>}
     </div>
   )
 }

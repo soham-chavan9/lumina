@@ -8,10 +8,12 @@ services:
     env_file:
       - .env
     environment:
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      LUMINA_ENV: ${LUMINA_ENV:-development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001}
       LUMINA_MODEL: ${LUMINA_MODEL:-gpt-4o-mini}
       LUMINA_EMBED_MODEL: ${LUMINA_EMBED_MODEL:-text-embedding-3-small}
       LUMINA_SEED_SAMPLE_DOCS: ${LUMINA_SEED_SAMPLE_DOCS:-false}
+      LUMINA_RATE_LIMIT_PER_MINUTE: ${LUMINA_RATE_LIMIT_PER_MINUTE:-120}
     volumes:
       - lumina_vector_store:/app/backend/data/vector_store
       - lumina_logs:/app/backend/data/logs
@@ -28,6 +30,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+        NEXT_PUBLIC_LUMINA_API_KEY: ${NEXT_PUBLIC_LUMINA_API_KEY:-}
+        NEXT_PUBLIC_LUMINA_TENANT_ID: ${NEXT_PUBLIC_LUMINA_TENANT_ID:-default}
     ports:
       - "3000:3000"
     environment:

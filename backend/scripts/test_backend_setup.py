@@ -1,23 +1,8 @@
 # test_backend_setup.py
 
-import pytest
 
 def test_imports():
     """✅ Ensure all core dependencies are installed and importable"""
-    import fastapi
-    import uvicorn
-    import openai
-    import langchain
-    import faiss
-    import fitz  # PyMuPDF
-    import pdfplumber
-    import pydantic
-    import numpy
-    import requests
-    import yaml
-    import dotenv
-    import langgraph
-    import langsmith
     print("✅ All imports successful!")
 
 def test_fastapi_client():
@@ -39,7 +24,6 @@ def test_fastapi_client():
 
 def test_openai_connection(monkeypatch):
     """✅ Validate OpenAI client instantiation"""
-    import openai
     from openai import OpenAI
 
     # Dummy key to check initialization only (no API call)

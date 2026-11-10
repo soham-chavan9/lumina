@@ -21,11 +21,8 @@ Thumbs.db
 .env.*
 !.env.example
 
-# Cursor / local agent tooling
-.cursor/
-.cursorignore
-AGENTS.md
-.cursorrules
+# Local interpreter pins (pyenv). Vercel/CI use Python 3.12.
+.python-version
 
 ############################
 # 🧰 PYTHON / FASTAPI BACKEND

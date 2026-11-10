@@ -1,6 +1,6 @@
 """Typed API envelopes for Lumina — structured internal protocol, not freeform prose."""
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -13,28 +13,28 @@ class AskRequest(BaseModel):
 
 class SourceDoc(BaseModel):
     source: str
-    snippet: Optional[str] = None
+    snippet: str | None = None
 
 
 class AskResponse(BaseModel):
     answer: str
     citation: str = ""
     confidence: Confidence = "Unknown"
-    sources: List[str] = Field(default_factory=list)
-    source_documents: List[SourceDoc] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    source_documents: list[SourceDoc] = Field(default_factory=list)
     refused: bool = False
 
 
 class UploadFileResult(BaseModel):
     filename: str
     status: str
-    preview: Optional[str] = None
-    chunks: Optional[int] = None
+    preview: str | None = None
+    chunks: int | None = None
 
 
 class UploadResponse(BaseModel):
     summary: str
-    results: List[UploadFileResult]
+    results: list[UploadFileResult]
 
 
 class HealthResponse(BaseModel):
@@ -51,7 +51,7 @@ class DocumentInfo(BaseModel):
 
 
 class DocumentsResponse(BaseModel):
-    documents: List[DocumentInfo]
+    documents: list[DocumentInfo]
     total_chunks: int
 
 
@@ -61,7 +61,7 @@ class SuggestionItem(BaseModel):
 
 
 class SuggestionsResponse(BaseModel):
-    suggestions: List[SuggestionItem]
+    suggestions: list[SuggestionItem]
 
 
 class RiskFinding(BaseModel):
@@ -73,9 +73,9 @@ class RiskFinding(BaseModel):
 
 class RiskScanResponse(BaseModel):
     summary: str
-    findings: List[RiskFinding] = Field(default_factory=list)
-    strengths: List[str] = Field(default_factory=list)
-    sources: List[str] = Field(default_factory=list)
+    findings: list[RiskFinding] = Field(default_factory=list)
+    strengths: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
 
 
 class BreachClockRequest(BaseModel):
@@ -85,8 +85,12 @@ class BreachClockRequest(BaseModel):
         description="ISO date or datetime when the incident was discovered (YYYY-MM-DD).",
     )
     phi_involved: bool = True
-    individuals_affected: Optional[int] = Field(default=None, ge=0)
-    unauthorized_recipient: str = ""
+    individuals_affected: int | None = Field(default=None, ge=0)
+    unauthorized_recipient: str = Field(default="", max_length=500)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms incident narrative may be processed by the model provider.",
+    )
 
 
 class BreachFactor(BaseModel):
@@ -98,12 +102,13 @@ class BreachFactor(BaseModel):
 class BreachClockResponse(BaseModel):
     summary: str
     notification_deadline: str
-    days_remaining: Optional[int] = None
+    days_remaining: int | None = None
     likely_reportable: bool
-    four_factor: List[BreachFactor] = Field(default_factory=list)
-    immediate_actions: List[str] = Field(default_factory=list)
-    policy_citations: List[str] = Field(default_factory=list)
-    sources: List[str] = Field(default_factory=list)
+    four_factor: list[BreachFactor] = Field(default_factory=list)
+    immediate_actions: list[str] = Field(default_factory=list)
+    policy_citations: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 
 
 class AccessRequestGuideRequest(BaseModel):
@@ -111,16 +116,21 @@ class AccessRequestGuideRequest(BaseModel):
     received_at: str = Field(..., description="ISO date the request was received.")
     channel: str = Field(default="patient portal", max_length=120)
     notes: str = Field(default="", max_length=2000)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms request details may be processed by the model provider.",
+    )
 
 
 class AccessRequestGuideResponse(BaseModel):
     summary: str
     statutory_deadline: str
-    days_remaining: Optional[int] = None
-    checklist: List[str] = Field(default_factory=list)
-    denial_or_delay_rules: List[str] = Field(default_factory=list)
-    policy_citations: List[str] = Field(default_factory=list)
-    sources: List[str] = Field(default_factory=list)
+    days_remaining: int | None = None
+    checklist: list[str] = Field(default_factory=list)
+    denial_or_delay_rules: list[str] = Field(default_factory=list)
+    policy_citations: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 
 
 class BaaScreenRequest(BaseModel):
@@ -128,15 +138,20 @@ class BaaScreenRequest(BaseModel):
     services: str = Field(..., min_length=5, max_length=2000)
     creates_receives_maintains_or_transmits_phi: bool = True
     notes: str = Field(default="", max_length=2000)
+    acknowledge_phi_export: bool = Field(
+        ...,
+        description="Must be true — confirms vendor details may be processed by the model provider.",
+    )
 
 
 class BaaScreenResponse(BaseModel):
     summary: str
     ba_likely_required: bool
     risk_level: Literal["High", "Medium", "Low", "Unknown"] = "Unknown"
-    required_clauses: List[str] = Field(default_factory=list)
-    diligence_questions: List[str] = Field(default_factory=list)
-    blockers: List[str] = Field(default_factory=list)
-    policy_citations: List[str] = Field(default_factory=list)
-    sources: List[str] = Field(default_factory=list)
+    required_clauses: list[str] = Field(default_factory=list)
+    diligence_questions: list[str] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    policy_citations: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    mode: Literal["policy_grounded", "fallback"] = "fallback"
 

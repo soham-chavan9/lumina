@@ -1,13 +1,24 @@
 import axios, { AxiosError } from 'axios'
 
+// Production builds (e.g. Vercel, where /api routes to the backend service) default
+// to same-origin /api; local `next dev` defaults to the API on port 8000.
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api')
 
 export const api = axios.create({
   baseURL: API_BASE,
   timeout: 90_000,
   headers: { Accept: 'application/json' },
 })
+
+const browserApiKey = process.env.NEXT_PUBLIC_LUMINA_API_KEY
+if (browserApiKey) {
+  api.defaults.headers.common['X-API-Key'] = browserApiKey
+}
+
+const browserTenant = process.env.NEXT_PUBLIC_LUMINA_TENANT_ID || 'default'
+api.defaults.headers.common['X-Tenant-Id'] = browserTenant
 
 export function getErrorMessage(err: unknown, fallback = 'Something went wrong') {
   const ax = err as AxiosError<{ detail?: string | { msg?: string }[] }>
@@ -100,6 +111,8 @@ export async function runRiskScan() {
   return data
 }
 
+export type WorkflowMode = 'policy_grounded' | 'fallback'
+
 export type BreachClockResponse = {
   summary: string
   notification_deadline: string
@@ -109,6 +122,7 @@ export type BreachClockResponse = {
   immediate_actions: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export type AccessRequestGuideResponse = {
@@ -119,6 +133,7 @@ export type AccessRequestGuideResponse = {
   denial_or_delay_rules: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export type BaaScreenResponse = {
@@ -130,6 +145,7 @@ export type BaaScreenResponse = {
   blockers: string[]
   policy_citations: string[]
   sources: string[]
+  mode?: WorkflowMode
 }
 
 export async function runBreachClock(payload: {
@@ -138,6 +154,7 @@ export async function runBreachClock(payload: {
   phi_involved: boolean
   individuals_affected?: number | null
   unauthorized_recipient?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<BreachClockResponse>('/breach-clock', payload)
   return data
@@ -148,6 +165,7 @@ export async function runAccessGuide(payload: {
   received_at: string
   channel: string
   notes?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<AccessRequestGuideResponse>('/access-request', payload)
   return data
@@ -158,6 +176,7 @@ export async function runBaaScreen(payload: {
   services: string
   creates_receives_maintains_or_transmits_phi: boolean
   notes?: string
+  acknowledge_phi_export: boolean
 }) {
   const { data } = await api.post<BaaScreenResponse>('/baa-screen', payload)
   return data

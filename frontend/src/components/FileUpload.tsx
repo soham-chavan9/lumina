@@ -38,12 +38,12 @@ export default function FileUpload({ onUploadComplete }: Props) {
   }
 
   return (
-    <section className="desk-panel p-5 md:p-6">
+    <section className="desk-panel p-6 md:p-7">
       <p className="desk-kicker">Corpus</p>
-      <h2 className="mt-1 text-[1.45rem] text-[var(--ink)]">File policies</h2>
-      <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
-        File Notice of Privacy Practices, breach/IRP procedures, BAA playbooks, and workforce
-        sanctions policies. Start with <code className="text-[var(--teal)]">HIPAA_Sample_Compliance.pdf</code>.
+      <h2 className="section-title mt-1 text-[1.65rem]">File policies</h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
+        Drop Notice of Privacy Practices, breach procedures, BAA playbooks, and sanctions
+        policies.
       </p>
 
       <label
@@ -57,10 +57,10 @@ export default function FileUpload({ onUploadComplete }: Props) {
           setDragOver(false)
           void processFiles(e.dataTransfer.files)
         }}
-        className={`mt-4 flex cursor-pointer flex-col items-center justify-center rounded-[16px] border border-dashed px-4 py-11 transition ${
+        className={`mt-5 flex cursor-pointer flex-col items-center justify-center rounded-[18px] border border-dashed px-4 py-12 transition-all duration-200 ${
           dragOver
-            ? 'border-[var(--teal)] bg-[var(--teal-soft)]'
-            : 'border-[var(--line)] bg-[rgba(20,24,31,0.02)]'
+            ? 'border-[var(--accent)] bg-[var(--accent-soft)] scale-[1.01]'
+            : 'border-[var(--line-strong)] bg-[rgba(0,0,0,0.02)]'
         }`}
       >
         <input
@@ -73,14 +73,16 @@ export default function FileUpload({ onUploadComplete }: Props) {
           onChange={(e) => void processFiles(e.target.files)}
         />
         {uploading ? (
-          <Loader2 className="mb-2 animate-spin text-[var(--teal)]" size={22} />
+          <Loader2 className="mb-3 animate-spin text-[var(--accent)]" size={24} />
         ) : (
-          <Upload className="mb-2 text-[var(--teal)]" size={22} />
+          <Upload className="mb-3 text-[var(--accent)]" size={24} strokeWidth={1.75} />
         )}
-        <span className="text-sm font-semibold text-[var(--ink)]">
+        <span className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--ink)]">
           {uploading ? 'Filing documents…' : 'Drop PDFs or browse'}
         </span>
-        <span className="mt-1 text-xs text-[var(--faint)]">PDF · max 15MB each · text-extractable</span>
+        <span className="mt-1.5 text-[13px] text-[var(--faint)]">
+          PDF · max 15MB each · text-extractable
+        </span>
       </label>
     </section>
   )
