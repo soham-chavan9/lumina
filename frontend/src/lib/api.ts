@@ -1,7 +1,10 @@
 import axios, { AxiosError } from 'axios'
 
+// Production builds (e.g. Vercel, where /api routes to the backend service) default
+// to same-origin /api; local `next dev` defaults to the API on port 8000.
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api')
 
 export const api = axios.create({
   baseURL: API_BASE,

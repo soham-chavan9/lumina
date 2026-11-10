@@ -14,12 +14,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
+from backend.storage import data_dir
 from backend.utils.pdf_parser import extract_text_from_pdf
 
 logger = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_PERSIST = BACKEND_DIR / "data" / "vector_store"
+DEFAULT_PERSIST = data_dir() / "vector_store"
 DEFAULT_EMBED_MODEL = os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small")
 
 _store_lock = threading.Lock()

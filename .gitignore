@@ -21,6 +21,9 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Local interpreter pins (pyenv). Vercel/CI use Python 3.12.
+.python-version
+
 ############################
 # 🧰 PYTHON / FASTAPI BACKEND
 ############################

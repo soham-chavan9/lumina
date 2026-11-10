@@ -3,9 +3,9 @@ import os
 import time
 from datetime import datetime
 from functools import wraps
-from pathlib import Path
+from backend.storage import data_dir
 
-LOG_DIR = str(Path(__file__).resolve().parents[1] / "data" / "logs")
+LOG_DIR = str(data_dir() / "logs")
 LOG_FILE = os.path.join(LOG_DIR, "performance_log.jsonl")
 
 os.makedirs(LOG_DIR, exist_ok=True)

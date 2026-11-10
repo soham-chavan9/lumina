@@ -45,6 +45,37 @@ docker compose -f docker-compose.prod.yml up --build -d
 # or: make up-prod
 ```
 
+## Vercel
+
+`vercel.json` deploys two [Vercel Services](https://vercel.com/docs/services) in one project:
+
+| Service | Root | Public paths |
+|---|---|---|
+| `backend` (FastAPI) | repo root, entrypoint `backend.main:app` | `/api/*`, `/health`, `/ready` |
+| `frontend` (Next.js) | `frontend/` | everything else |
+
+The browser calls the API on the same origin (`/api`), so no CORS or service bindings are needed.
+
+Project environment variables:
+
+| Variable | Value |
+|---|---|
+| `LUMINA_ENV` | `production` |
+| `OPENAI_API_KEY` | funded key |
+| `LUMINA_API_KEY` | API key the backend requires |
+| `NEXT_PUBLIC_LUMINA_API_KEY` | same value (compiled into the browser bundle) |
+| `CORS_ORIGINS` | your deployment URL, e.g. `https://lumina.vercel.app` (required at boot in production) |
+| `LUMINA_TRUST_PROXY` | `true` (Vercel sets `X-Forwarded-For`, so rate limits are per client) |
+| `LUMINA_MAX_UPLOAD_MB` | `4` (Vercel caps request bodies at 4.5 MB) |
+
+Leave `NEXT_PUBLIC_API_URL` unset on Vercel. For `vercel dev`, set it to `/api`.
+
+Known limits on Vercel:
+
+- Filed policies are stored under `/tmp`, which is per instance and not persistent. Uploads disappear on cold starts and are not shared across instances. Durable storage (for example Vercel Blob or a hosted vector database) is needed for real use.
+- Each upload request must stay under 4.5 MB in total.
+- Rate limiting is in memory, so it is per instance.
+
 ## SDLC / quality gates
 
 | Stage | Command |
