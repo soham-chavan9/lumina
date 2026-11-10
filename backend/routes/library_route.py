@@ -2,11 +2,11 @@
 
 import logging
 
-from fastapi import Depends, APIRouter
-from backend.auth import require_api_key
-from backend.tenant import bind_tenant
+from fastapi import APIRouter, Depends
 
+from backend.auth import require_api_key
 from backend.schemas import DocumentInfo, DocumentsResponse
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 
 router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])

@@ -4,12 +4,12 @@ import logging
 import os
 import re
 
-from fastapi import Depends, APIRouter, HTTPException
-from backend.auth import require_api_key
-from backend.tenant import bind_tenant
+from fastapi import APIRouter, Depends, HTTPException
 
+from backend.auth import require_api_key
 from backend.llm_workflow import generate_lumina_answer, parse_lumina_output
 from backend.schemas import AskRequest, AskResponse, SourceDoc
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 from backend.utils.performance_logger import log_performance
 

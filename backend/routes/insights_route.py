@@ -4,12 +4,11 @@ import json
 import logging
 import re
 
-from fastapi import Depends, APIRouter, HTTPException
-from backend.auth import require_api_key
-from backend.tenant import bind_tenant
+from fastapi import APIRouter, Depends, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from backend.auth import require_api_key
 from backend.llm_workflow import get_lumina_model
 from backend.schemas import (
     RiskFinding,
@@ -17,6 +16,7 @@ from backend.schemas import (
     SuggestionItem,
     SuggestionsResponse,
 )
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 
 router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])

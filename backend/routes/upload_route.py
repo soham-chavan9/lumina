@@ -4,12 +4,12 @@ import logging
 import os
 import re
 
-from fastapi import Depends, APIRouter, File, HTTPException, UploadFile
-from backend.auth import require_api_key
-from backend.tenant import bind_tenant
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
+from backend.auth import require_api_key
 from backend.config import get_settings
 from backend.schemas import UploadFileResult, UploadResponse
+from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 from backend.utils.pdf_parser import extract_text_from_pdf
 
