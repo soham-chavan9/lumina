@@ -27,3 +27,15 @@ def test_root(client):
     assert body["industry"] == "healthcare-hipaa"
     assert "endpoints" in body
 
+
+
+def test_cors_preflight_allows_auth_and_tenant_headers(client):
+    res = client.options(
+        "/api/documents",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "x-api-key,x-tenant-id",
+        },
+    )
+    assert res.status_code == 200
