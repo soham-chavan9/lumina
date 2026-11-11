@@ -30,6 +30,7 @@ class Settings:
     trust_proxy: bool = False
     max_upload_mb: int = 15
     max_upload_files: int = 10
+    block_phi_uploads: bool = True
     version: str = "2.3.0"
 
     @property
@@ -80,6 +81,7 @@ def get_settings() -> Settings:
         trust_proxy=os.getenv("LUMINA_TRUST_PROXY", "false").lower() in {"1", "true", "yes"},
         max_upload_mb=int(os.getenv("LUMINA_MAX_UPLOAD_MB", "15")),
         max_upload_files=int(os.getenv("LUMINA_MAX_UPLOAD_FILES", "10")),
+        block_phi_uploads=os.getenv("LUMINA_BLOCK_PHI_UPLOADS", "true").lower() not in {"0", "false", "no"},
         version=os.getenv("LUMINA_VERSION", "2.3.0"),
     )
     return settings

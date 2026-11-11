@@ -1,0 +1,75 @@
+{
+  "01_patient_intake_form.pdf": {
+    "name": "Maria Delgado",
+    "dob": "12/09/1943",
+    "ssn": "941-38-3286",
+    "mrn": "MRN-2719583",
+    "address": "8945 Maple Ridge Rd, Fairhaven, MA 02719",
+    "phone": "(555) 019-7912",
+    "fax": "(555) 010-1488",
+    "email": "maria.delgado@example.com",
+    "license": "S77827638",
+    "plate": "AN4257",
+    "member_id": "TST200604502",
+    "group": "GRP-38657",
+    "account": "ACCT-41227216",
+    "url": "https://portal.example-health.test/p/81426",
+    "ip": "192.0.2.168",
+    "device": "SN-PM850800"
+  },
+  "02_lab_results.pdf": {
+    "name": "James Whitfield",
+    "dob": "08/19/1968",
+    "mrn": "MRN-8090293",
+    "phone": "(555) 012-4527",
+    "dates": [
+      "04/02/2026",
+      "04/03/2026"
+    ],
+    "accession": "ACC-26-0048213"
+  },
+  "03_discharge_summary.pdf": {
+    "name": "Priya Raman",
+    "last": "Raman",
+    "mrn": "MRN-4226067",
+    "dob": "02/18/1988",
+    "address": "1149 Maple Ridge Rd, Fairhaven, MA 02719",
+    "url": "https://portal.example-health.test/p/97841",
+    "email": "priya.raman@example.com",
+    "fax": "(555) 011-4814",
+    "relative": "Anika Raman",
+    "relative_phone": "(555) 019-4410",
+    "dates": [
+      "05/18/2026",
+      "05/20/2026",
+      "05/22/2026"
+    ]
+  },
+  "04_insurance_claim.pdf": {
+    "name": "Daniel Okafor",
+    "member_id": "TST345938494",
+    "group": "GRP-14207",
+    "dob": "10/21/1949",
+    "ssn": "931-78-5010",
+    "address": "7583 Linden Ave, Millbrook, NY 12545",
+    "phone": "(555) 014-4598",
+    "account": "ACCT-52339391",
+    "dates": [
+      "06/09/2026"
+    ]
+  },
+  "05_referral_letter.pdf": {
+    "name": "Aisha Brennan",
+    "dob": "07/21/2003",
+    "mrn": "MRN-3342608",
+    "device": "SN-PM195325",
+    "phone": "(555) 018-5304",
+    "email": "aisha.brennan@example.com",
+    "dates": [
+      "July 7, 2026",
+      "06/30/2026",
+      "07/01/2026"
+    ]
+  },
+  "06_deidentified_control.pdf": {}
+}

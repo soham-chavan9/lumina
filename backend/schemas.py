@@ -155,3 +155,19 @@ class BaaScreenResponse(BaseModel):
     sources: list[str] = Field(default_factory=list)
     mode: Literal["policy_grounded", "fallback"] = "fallback"
 
+
+
+class PhiCategorySummary(BaseModel):
+    category: str
+    label: str
+    count: int
+    examples: list[str] = Field(default_factory=list)  # partially masked
+
+
+class PhiScanResponse(BaseModel):
+    filename: str
+    verdict: Literal["phi_found", "no_phi_found"]
+    likely_patient_record: bool
+    identifier_count: int
+    categories: list[PhiCategorySummary] = Field(default_factory=list)
+    note: str

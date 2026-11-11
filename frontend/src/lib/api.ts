@@ -172,6 +172,24 @@ export async function runAccessGuide(payload: {
   return data
 }
 
+export type PhiScanResponse = {
+  filename: string
+  verdict: 'phi_found' | 'no_phi_found'
+  likely_patient_record: boolean
+  identifier_count: number
+  categories: { category: string; label: string; count: number; examples: string[] }[]
+  note: string
+}
+
+export async function runPhiScan(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  const { data } = await api.post<PhiScanResponse>('/phi-scan', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
 export async function runBaaScreen(payload: {
   vendor_name: string
   services: string

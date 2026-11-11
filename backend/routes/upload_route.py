@@ -12,6 +12,7 @@ from backend.schemas import UploadFileResult, UploadResponse
 from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
 from backend.utils.pdf_parser import extract_text_from_pdf
+from backend.utils.phi_detector import CATEGORY_LABELS, detect_phi, looks_like_patient_record
 
 router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)])
 logger = logging.getLogger(__name__)
@@ -100,6 +101,25 @@ async def upload_files(files: list[UploadFile] = File(...)) -> UploadResponse:
             # Bound extract size before embedding to limit DoS via huge text PDFs.
             if len(text) > 1_500_000:
                 text = text[:1_500_000]
+
+            # The library is for policies: keep patient records (PHI) out of the index.
+            if settings.block_phi_uploads:
+                hits = detect_phi(text)
+                if looks_like_patient_record(hits):
+                    found = sorted({CATEGORY_LABELS[h.category] for h in hits})
+                    results.append(
+                        UploadFileResult(
+                            filename=filename,
+                            status=(
+                                "Not filed: this looks like a patient record "
+                                f"({len(hits)} PHI identifiers: {', '.join(found[:4])}"
+                                f"{'…' if len(found) > 4 else ''}). Use PHI scan instead."
+                            ),
+                        )
+                    )
+                    # No filename: a patient record's name can itself be PHI.
+                    logger.info("Refused an upload that looks like a patient record (%s PHI identifiers)", len(hits))
+                    continue
 
             chunks = store.add_document(text, source=filename)
             results.append(

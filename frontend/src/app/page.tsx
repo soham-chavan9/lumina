@@ -11,6 +11,7 @@ import RiskScan from '../components/RiskScan'
 import BreachClock from '../components/BreachClock'
 import AccessRequestGuide from '../components/AccessRequestGuide'
 import BaaScreen from '../components/BaaScreen'
+import PhiScan from '../components/PhiScan'
 import {
   clearDocuments,
   fetchDocuments,
@@ -273,6 +274,7 @@ export default function HomePage() {
           <BreachClock disabled={apiStatus === 'offline'} />
           <AccessRequestGuide disabled={apiStatus === 'offline'} />
           <BaaScreen disabled={apiStatus === 'offline'} />
+          <PhiScan disabled={apiStatus === 'offline'} />
           <RiskScan
             result={scanResult}
             loading={scanLoading}
