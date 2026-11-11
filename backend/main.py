@@ -16,6 +16,7 @@ load_dotenv(_ROOT / ".env")
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from backend.config import get_settings
+from backend.llm_workflow import active_model_label
 from backend.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
 from backend.routes.ask_route import router as ask_router
 from backend.routes.healthcare_route import router as healthcare_router
@@ -124,7 +125,7 @@ def health_check() -> HealthResponse:
         message="Lumina is ready",
         vector_store_ready=store.is_ready(),
         document_chunks=store.chunk_count(),
-        model=settings.model,
+        model=active_model_label(),
     )
 
 

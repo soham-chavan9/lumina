@@ -14,6 +14,9 @@ os.environ.setdefault("LUMINA_RATE_LIMIT_PER_MINUTE", "10000")
 os.environ.setdefault("CORS_ORIGINS", "http://localhost:3000")
 # Keep a developer's local .env API key from leaking into tests (dotenv never overrides).
 os.environ.setdefault("LUMINA_API_KEY", "")
+# Never call Ollama or probe OpenAI from tests unless a test opts in.
+os.environ.setdefault("LUMINA_LOCAL_FALLBACK", "false")
+os.environ.setdefault("LUMINA_EMBEDDINGS", "openai")
 
 
 @pytest.fixture(scope="session")

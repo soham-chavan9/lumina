@@ -8,7 +8,8 @@ export const API_BASE =
 
 export const api = axios.create({
   baseURL: API_BASE,
-  timeout: 90_000,
+  // Local-model fallback (llama3.1:8b) can take ~60 s for the exposure brief.
+  timeout: 180_000,
   headers: { Accept: 'application/json' },
 })
 

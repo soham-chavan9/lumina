@@ -14,7 +14,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
+from backend.llm_workflow import openai_usable
 from backend.storage import data_dir
+from backend.utils.local_embeddings import LocalHashEmbeddings
 from backend.utils.pdf_parser import extract_text_from_pdf
 
 logger = logging.getLogger(__name__)
@@ -22,24 +24,52 @@ logger = logging.getLogger(__name__)
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_PERSIST = data_dir() / "vector_store"
 DEFAULT_EMBED_MODEL = os.getenv("LUMINA_EMBED_MODEL", "text-embedding-3-small")
+# FAISS returns squared L2 distance; for unit vectors that is 2 - 2*cosine.
+OPENAI_MAX_DISTANCE = 1.2
+# Keyword vectors score far lower than semantic ones: 1.9 keeps chunks with cosine >= 0.05.
+# Local stores always use this, because callers' thresholds are tuned for OpenAI vectors.
+LOCAL_MAX_DISTANCE = 1.9
 
 _store_lock = threading.Lock()
 _store_instances: dict[str, PersistentEmbedStore] = {}
 
 
+def embedding_backend() -> str:
+    """"openai" or "local". LUMINA_EMBEDDINGS forces one; otherwise local when OpenAI is unusable."""
+    choice = os.getenv("LUMINA_EMBEDDINGS", "auto").strip().lower()
+    if choice in {"openai", "local"}:
+        return choice
+    return "openai" if openai_usable() else "local"
+
+
 def get_embed_store(tenant_id: str | None = None) -> PersistentEmbedStore:
-    """Per-tenant FAISS store so corpora do not bleed across X-Tenant-Id values."""
+    """Per-tenant FAISS store so corpora do not bleed across X-Tenant-Id values.
+
+    OpenAI and local vectors have different dimensions, so each backend keeps its
+    own index folder (local ones under vector_store/local/).
+    """
     from backend.tenant import get_current_tenant, sanitize_tenant_id
 
     tid = sanitize_tenant_id(tenant_id or get_current_tenant())
+    backend = embedding_backend()
+    cache_key = f"{backend}:{tid}"
     with _store_lock:
-        store = _store_instances.get(tid)
+        store = _store_instances.get(cache_key)
         if store is None:
-            path = DEFAULT_PERSIST / "tenants" / tid
-            if tid == "default":
-                _migrate_legacy_store(path)
-            store = PersistentEmbedStore(persist_path=str(path))
-            _store_instances[tid] = store
+            if backend == "openai":
+                path = DEFAULT_PERSIST / "tenants" / tid
+                if tid == "default":
+                    _migrate_legacy_store(path)
+                store = PersistentEmbedStore(persist_path=str(path))
+            else:
+                path = DEFAULT_PERSIST / "local" / "tenants" / tid
+                store = PersistentEmbedStore(
+                    persist_path=str(path),
+                    embedding_model=LocalHashEmbeddings(),
+                    max_distance=LOCAL_MAX_DISTANCE,
+                    honor_caller_distance=False,
+                )
+            _store_instances[cache_key] = store
         return store
 
 
@@ -64,10 +94,18 @@ def _migrate_legacy_store(target: Path) -> None:
 
 
 class PersistentEmbedStore:
-    def __init__(self, persist_path: str | None = None):
+    def __init__(
+        self,
+        persist_path: str | None = None,
+        embedding_model=None,
+        max_distance: float = OPENAI_MAX_DISTANCE,
+        honor_caller_distance: bool = True,
+    ):
         self.persist_path = Path(persist_path or DEFAULT_PERSIST)
         self.persist_path.mkdir(parents=True, exist_ok=True)
-        self.embedding_model = OpenAIEmbeddings(model=DEFAULT_EMBED_MODEL)
+        self.embedding_model = embedding_model or OpenAIEmbeddings(model=DEFAULT_EMBED_MODEL)
+        self.default_max_distance = max_distance
+        self.honor_caller_distance = honor_caller_distance
         self.vectorstore: FAISS | None = None
         self._load()
 
@@ -125,10 +163,16 @@ class PersistentEmbedStore:
         )
         return len(docs)
 
-    def query(self, question: str, k: int = 6, max_distance: float = 1.2) -> list[dict]:
-        """Return chunks under a FAISS L2 distance threshold (lower = closer)."""
+    def query(self, question: str, k: int = 6, max_distance: float | None = None) -> list[dict]:
+        """Return chunks under a FAISS L2 distance threshold (lower = closer).
+
+        With no threshold given, or for stores whose scale differs from OpenAI's,
+        use the store's own default.
+        """
         if not self.vectorstore:
             return []
+        if max_distance is None or not self.honor_caller_distance:
+            max_distance = self.default_max_distance
 
         with _store_lock:
             pairs = self.vectorstore.similarity_search_with_score(question, k=k)
