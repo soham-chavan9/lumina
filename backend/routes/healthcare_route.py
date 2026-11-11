@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import logging
-import re
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,6 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from backend.auth import require_api_key
+from backend.llm_workflow import extract_json as _extract_json
 from backend.llm_workflow import get_lumina_model
 from backend.schemas import (
     AccessRequestGuideRequest,
@@ -29,11 +28,6 @@ router = APIRouter(dependencies=[Depends(require_api_key), Depends(bind_tenant)]
 logger = logging.getLogger(__name__)
 
 
-def _extract_json(text: str):
-    text = text.strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.IGNORECASE).strip()
-    return json.loads(text)
 
 
 def _parse_day(value: str, *, allow_future: bool = False) -> date:
@@ -177,7 +171,7 @@ def breach_clock(payload: BreachClockRequest) -> BreachClockResponse:
 
     mode: str = "fallback"
     try:
-        raw = (BREACH_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
+        raw = (BREACH_PROMPT | get_lumina_model(json_mode=True) | StrOutputParser()).invoke(
             {
                 "discovered_at": discovered.isoformat(),
                 "phi_involved": payload.phi_involved,
@@ -276,7 +270,7 @@ def access_request_guide(payload: AccessRequestGuideRequest) -> AccessRequestGui
 
     mode: str = "fallback"
     try:
-        raw = (ACCESS_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
+        raw = (ACCESS_PROMPT | get_lumina_model(json_mode=True) | StrOutputParser()).invoke(
             {
                 "request_type": payload.request_type,
                 "received_at": received.isoformat(),
@@ -335,7 +329,7 @@ def baa_screen(payload: BaaScreenRequest) -> BaaScreenResponse:
 
     mode: str = "fallback"
     try:
-        raw = (BAA_PROMPT | get_lumina_model() | StrOutputParser()).invoke(
+        raw = (BAA_PROMPT | get_lumina_model(json_mode=True) | StrOutputParser()).invoke(
             {
                 "vendor": payload.vendor_name,
                 "services": payload.services,

@@ -30,6 +30,21 @@ PYTHONPATH=. uvicorn backend.main:app --reload --port 8000
 cd frontend && npm run dev -- --port 3001
 ```
 
+### No OpenAI key? Use the local model
+
+If `OPENAI_API_KEY` is missing or rejected, Lumina switches to a local [Ollama](https://ollama.com) model
+(default `llama3.1:8b`) for answers, suggestions and workflows, and to offline keyword embeddings for
+search. OpenAI is checked once at startup; a working key is used first, with the local model as backup.
+
+```bash
+ollama pull llama3.1:8b   # once
+ollama serve              # if Ollama isn't already running
+```
+
+The header shows `llama3.1:8b (local)` while the fallback is active. Local answers are slower
+(roughly 5–60 s) and less reliable than GPT-4o-mini. Documents filed in local mode are kept in a
+separate index (`vector_store/local/`), so re-upload them after switching back to OpenAI.
+
 - UI: http://localhost:3001  
 - API docs: http://localhost:8000/docs  
 - Demo PDF: `backend/data/testing_pdfs/HIPAA_Sample_Compliance.pdf`

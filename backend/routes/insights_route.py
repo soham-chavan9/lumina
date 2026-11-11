@@ -1,14 +1,13 @@
 """Insights MVPs — suggested questions + compliance risk scan."""
 
-import json
 import logging
-import re
 
 from fastapi import APIRouter, Depends, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from backend.auth import require_api_key
+from backend.llm_workflow import extract_json as _extract_json
 from backend.llm_workflow import get_lumina_model
 from backend.schemas import (
     RiskFinding,
@@ -54,11 +53,6 @@ SCAN_PROMPT = ChatPromptTemplate.from_messages(
 )
 
 
-def _extract_json(text: str):
-    text = text.strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.IGNORECASE).strip()
-    return json.loads(text)
 
 
 @router.get("/suggestions", response_model=SuggestionsResponse)

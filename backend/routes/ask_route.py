@@ -7,7 +7,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.auth import require_api_key
-from backend.llm_workflow import generate_lumina_answer, parse_lumina_output
+from backend.llm_workflow import generate_lumina_answer, llm_available, parse_lumina_output
 from backend.schemas import AskRequest, AskResponse, SourceDoc
 from backend.tenant import bind_tenant
 from backend.utils.embed_store import get_embed_store
@@ -60,7 +60,7 @@ async def ask_question(data: AskRequest) -> AskResponse:
             refused=True,
         )
 
-    if not os.getenv("OPENAI_API_KEY"):
+    if not llm_available():
         raise HTTPException(status_code=500, detail="Missing OPENAI_API_KEY.")
 
     store = get_embed_store()
@@ -73,7 +73,8 @@ async def ask_question(data: AskRequest) -> AskResponse:
             refused=True,
         )
 
-    max_distance = float(os.getenv("LUMINA_MAX_DISTANCE", "1.2"))
+    env_distance = os.getenv("LUMINA_MAX_DISTANCE", "").strip()
+    max_distance = float(env_distance) if env_distance else None  # None: store default
     results = store.query(question, k=6, max_distance=max_distance)
     if not results:
         return AskResponse(
