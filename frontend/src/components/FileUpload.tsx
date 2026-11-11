@@ -23,11 +23,14 @@ export default function FileUpload({ onUploadComplete }: Props) {
       const ok = results.filter((r) =>
         r.status.toLowerCase().includes('embedded successfully')
       ).length
+      const refused = results.find((r) => r.status.startsWith('Not filed'))
       if (ok > 0) {
         toast.success(`${ok} polic${ok === 1 ? 'y' : 'ies'} filed`, { id: toastId })
         onUploadComplete()
+        // Mixed batch: still say which file was kept out of the library and why.
+        if (refused) toast.error(`${refused.filename}: ${refused.status}`, { duration: 8000 })
       } else {
-        toast.error(results[0]?.status || 'Upload failed', { id: toastId })
+        toast.error(results[0]?.status || 'Upload failed', { id: toastId, duration: 8000 })
       }
     } catch (err) {
       toast.error(getErrorMessage(err, 'Upload failed'), { id: toastId })

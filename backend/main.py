@@ -22,6 +22,7 @@ from backend.routes.ask_route import router as ask_router
 from backend.routes.healthcare_route import router as healthcare_router
 from backend.routes.insights_route import router as insights_router
 from backend.routes.library_route import router as library_router
+from backend.routes.phi_route import router as phi_router
 from backend.routes.upload_route import router as upload_router
 from backend.schemas import HealthResponse
 from backend.utils.embed_store import get_embed_store
@@ -87,6 +88,7 @@ app.include_router(ask_router, prefix="/api", tags=["Ask"])
 app.include_router(library_router, prefix="/api", tags=["Library"])
 app.include_router(insights_router, prefix="/api", tags=["Insights"])
 app.include_router(healthcare_router, prefix="/api", tags=["Healthcare"])
+app.include_router(phi_router, prefix="/api", tags=["PHI"])
 
 
 @app.exception_handler(StarletteHTTPException)

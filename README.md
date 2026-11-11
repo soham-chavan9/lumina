@@ -143,6 +143,28 @@ CI runs on push/PR. Backend tests use FastAPI `TestClient` and do **not** requir
 4. **Access guide** — `POST /api/access-request`  
 5. **BAA screen** — `POST /api/baa-screen`  
 6. **HIPAA exposure brief** — `POST /api/scan`
+7. **PHI scan** — `POST /api/phi-scan`: finds HIPAA Safe Harbor identifiers in a PDF
+
+## PHI scan
+
+The PHI scan checks a PDF for Safe Harbor identifiers (names, dates, addresses, phone/fax numbers,
+emails, SSNs, record/plan/account/licence/vehicle/device numbers, URLs, IPs, ages over 89). It is
+rule-based and runs in-process: the file is not stored, indexed or sent to a model provider, values
+come back partially masked, and logs record counts only. Letterhead and provider contact lines are
+skipped, since Safe Harbor covers the individual and their relatives, not the treating facility.
+
+Uploads that look like patient records are refused before indexing
+(`LUMINA_BLOCK_PHI_UPLOADS=true` by default), so the policy library never holds PHI.
+
+Accuracy is measured on synthetic records in `backend/tests/fixtures/phi` (all values fake):
+
+```bash
+PYTHONPATH=. python backend/scripts/eval_phi_detector.py
+```
+
+On that set it finds all 54 answer-key identifiers, plus 3 genuine identifiers the key omits, with
+zero detections on the de-identified control. The rules were written against this set, so check
+them on your own documents; scanned images need OCR first.
 
 ## Resume blurb
 
